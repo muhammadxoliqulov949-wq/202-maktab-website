@@ -86,8 +86,8 @@ export const NEWS: NewsArticle[] = [
     category: "Yangiliklar",
     date: iso(2026, 10, 2),
     readingTime: "2 daqiqa",
-    image: "/images/edu-classroom.jpg",
-    alt: "Robototexnika to'garagi uchun zamonaviy sinfxona",
+    image: "/images/news-stem.jpg",
+    alt: "Robototexnika to'garagi jihozlari",
     body: [
       { type: "p", text: "STEM ta’limi — muhandislik va texnologiyaga qiziqqan bolalar uchun birinchi qadam. To‘garakda o‘quvchilar oddiy robotlar yasashni va dasturlash asoslarini o‘rganadi." },
       { type: "p", text: "Ro‘yxatdan o‘tish uchun sinf rahbaringizga murojaat qiling." },

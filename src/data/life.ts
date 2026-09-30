@@ -47,8 +47,8 @@ export const LIFE_ITEMS: LifeItem[] = [
     id: "muhit",
     category: "Maktab muhiti",
     title: "Yashil va bag‘rikeng maktab hovlisi",
-    image: "/images/intro.jpg",
-    alt: "Maktab ichki hovlisi",
+    image: "/images/life-muhit.jpg",
+    alt: "Yashil daraxtlar bilan maktab hovlisi",
     ratio: "tall",
   },
   {

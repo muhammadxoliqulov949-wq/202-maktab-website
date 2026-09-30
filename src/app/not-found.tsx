@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <section className="relative flex min-h-[92svh] items-center overflow-hidden">
       <div className="absolute inset-0" aria-hidden="true">
-        <Image src="/images/life-sport.jpg" alt="" fill sizes="100vw" className="object-cover" />
+        <Image src="/images/life-muhit.jpg" alt="" fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-[rgba(10,18,33,0.88)] via-[rgba(10,18,33,0.8)] to-[rgba(10,18,33,0.92)]" />
       </div>
 

@@ -36,7 +36,9 @@ export const GALLERY: GalleryItem[] = [
   { id: "g-08", type: "image", src: "/images/edu-events.jpg", alt: "Akt zali", category: "Tadbirlar", album: "Tadbirlar", width: 1792, height: 1008 },
   { id: "g-09", type: "image", src: "/images/life-ijod.jpg", alt: "Ijodiy to‘garak", category: "Ijod", album: "Ijod", width: 1536, height: 1024 },
   { id: "g-10", type: "image", src: "/images/edu-inclusive.jpg", alt: "Inklyuziv ta’lim xonasi", category: "Darslar", album: "Sinfxonalar", width: 1024, height: 768 },
-  { id: "v-01", type: "video", src: "/video/campus.mp4", poster: "/images/hero.jpg", alt: "Maktab hovlisi video", category: "Maktab muhiti", album: "Video", width: 1792, height: 1008 },
+  { id: "g-11", type: "image", src: "/images/life-muhit.jpg", alt: "Yashil maktab hovlisi", category: "Maktab muhiti", album: "Hovli", width: 1024, height: 1280 },
+  { id: "v-01", type: "video", src: "/video/campus.mp4", poster: "/images/hero.jpg", alt: "Maktab binosi video lavhasi", category: "Maktab muhiti", album: "Video", width: 1792, height: 1008 },
+  { id: "v-02", type: "video", src: "/video/sport.mp4", poster: "/images/life-sport.jpg", alt: "Sport maydoni video lavhasi", category: "Sport", album: "Video", width: 1792, height: 1008 },
 ];
 
 export const GALLERY_ALBUMS = ["Barcha albomlar", ...Array.from(new Set(GALLERY.map((g) => g.album)))];
