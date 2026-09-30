@@ -4,6 +4,8 @@ import "@fontsource-variable/space-grotesk";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ScrollProgress } from "@/components/layout/ScrollProgress";
+import { BackToTop } from "@/components/layout/BackToTop";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://202-maktab.uz"),
@@ -39,12 +41,29 @@ const themeScript = `(function(){try{var t=localStorage.getItem("m202-theme");va
 
 const jsFlagScript = `document.documentElement.classList.add("js");`;
 
+/** Structured data — verified fields only (no fabricated phone/coords). */
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "School",
+  name: "202-sonli umumiy o‘rta ta’lim maktabi",
+  alternateName: "202-maktab",
+  url: "https://202-maktab.uz",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Toshkent",
+    addressRegion: "Toshkent shahri",
+    addressCountry: "UZ",
+  },
+  areaServed: "Chilonzor tumani",
+});
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="uz">
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: jsFlagScript }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body>
         <a
@@ -53,9 +72,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Asosiy kontentga o‘tish
         </a>
+        <ScrollProgress />
         <Navbar />
         <main id="main">{children}</main>
         <Footer />
+        <BackToTop />
       </body>
     </html>
   );

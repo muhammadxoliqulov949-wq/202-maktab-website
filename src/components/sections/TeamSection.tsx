@@ -47,7 +47,11 @@ export function PersonCard({ person }: { person: (typeof PEOPLE)[number] }) {
 
 /** SECTION 07 — Teachers / team preview. Layout is data-driven (any count works). */
 export function TeamSection() {
-  const preview = PEOPLE.slice(0, 4);
+  /* diverse preview: director, primary teacher, math teacher, PE coach */
+  const PREVIEW_IDS = ["p-01", "p-05", "p-04", "p-10"];
+  const preview = PREVIEW_IDS.map((id) => PEOPLE.find((p) => p.id === id)).filter(
+    (p): p is (typeof PEOPLE)[number] => Boolean(p)
+  );
 
   return (
     <section className="section-pad" aria-label="Maktab jamoasi">

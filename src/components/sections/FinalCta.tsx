@@ -25,7 +25,7 @@ export function FinalCta() {
           </Reveal>
           <Reveal delay={80}>
             <h2 className="h2 mt-5 text-white" style={{ maxWidth: "18ch" }}>
-              202-maktab bilan yaqindan <em className="em-accent">tanishing.</em>
+              202-maktab bilan yaqindan <em className="em-accent-on-dark">tanishing.</em>
             </h2>
           </Reveal>
           <Reveal delay={150}>

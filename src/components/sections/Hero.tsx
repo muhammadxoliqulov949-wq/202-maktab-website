@@ -31,7 +31,7 @@ export function Hero() {
             <span className="rl" style={{ ["--i" as string]: 1 }}><span>va kelajak —</span></span>
             <span className="rl" style={{ ["--i" as string]: 2 }}>
               <span>
-                <em className="em-accent">bir maskanda.</em>
+                <em className="em-accent-on-dark">bir maskanda.</em>
               </span>
             </span>
           </h1>

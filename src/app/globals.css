@@ -275,6 +275,13 @@ button { font: inherit; color: inherit; }
   position: relative;
 }
 
+/* bright emerald tuned for dark overlays — WCAG-safe on hero/CTA imagery */
+.em-accent-on-dark {
+  font-style: normal;
+  color: #63d3a7;
+}
+[data-theme="dark"] .em-accent-on-dark { color: var(--accent-ink); }
+
 /* ======================== NEUMORPHIC SURFACES ======================== */
 
 .n {
@@ -579,6 +586,37 @@ select.field {
 
 .icon-btn:hover { color: var(--accent-ink); }
 .icon-btn:active { box-shadow: var(--shadow-inset-sm); transform: scale(0.97); }
+
+/* --- transparent navbar over dark heroes: light-on-dark legibility --- */
+.nav-shell:not(.scrolled) .brand-name { color: #fff; }
+.nav-shell:not(.scrolled) .brand-sub { color: rgba(255, 255, 255, 0.62); }
+
+.nav-shell:not(.scrolled) .nav-link { color: rgba(255, 255, 255, 0.82); }
+.nav-shell:not(.scrolled) .nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.nav-shell:not(.scrolled) .nav-link[aria-current="page"] { color: #fff; }
+
+.nav-shell:not(.scrolled) .locale-btn { color: rgba(255, 255, 255, 0.85); }
+.nav-shell:not(.scrolled) .locale-btn:hover { color: #fff; }
+
+.nav-shell:not(.scrolled) .icon-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.nav-shell:not(.scrolled) .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
+
+.nav-shell:not(.scrolled) .nav-cta-mini {
+  background: linear-gradient(145deg, #12896a, var(--accent));
+  color: #ffffff;
+  box-shadow: 7px 7px 16px rgba(4, 24, 17, 0.35), -4px -4px 12px rgba(255, 255, 255, 0.06);
+}
+.nav-shell:not(.scrolled) .nav-cta-mini:hover { box-shadow: 10px 14px 26px rgba(4, 24, 17, 0.4); }
 
 /* dropdown */
 .dropdown-panel {
@@ -1291,7 +1329,7 @@ select.field {
 
   .marquee-track { animation: none; }
 
-  .js [data-reveal], .js .stagger > * { opacity: 1 !important; transform: none !important; }
+  .js [data-reveal], .js .stagger > *:not([data-reveal]) { opacity: 1 !important; transform: none !important; }
   .js [data-reveal="img"] { clip-path: none !important; }
   .js .rl-scroll > span { transform: none !important; }
   .anim-hero-media, .anim-seq .rl > span, .anim-seq .anim-fade, .anim-nav { animation: none !important; }

@@ -82,7 +82,7 @@ function LocaleSwitch() {
     <div ref={wrapRef} className={`relative ${open ? "dropdown-open" : ""}`}>
       <button
         type="button"
-        className="flex items-center gap-2 rounded-[14px] px-3.5 py-2.5 font-bold text-[0.88rem] text-muted transition-colors hover:text-ink"
+        className="locale-btn flex items-center gap-2 rounded-[14px] px-3.5 py-2.5 font-bold text-[0.88rem] text-muted transition-colors hover:text-ink"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Sayt tili (tez orada rus tili ham qo‘shiladi)"

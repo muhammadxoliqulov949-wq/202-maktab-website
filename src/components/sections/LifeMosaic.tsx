@@ -50,11 +50,7 @@ export function LifeMosaic() {
               key={item.id}
               variant="img"
               delay={(i % 4) * 70}
-              className={
-                item.ratio === "wide"
-                  ? "col-span-2"
-                  : /* on desktop the 1st tall item spans 2 rows via aspect trick */ ""
-              }
+              className={item.ratio === "wide" ? "col-span-2" : ""}
             >
               <Link
                 href="/gallery"
@@ -85,14 +81,30 @@ export function LifeMosaic() {
               </Link>
             </Reveal>
           ))}
-        </Stagger>
 
-        <Reveal className="mt-10 flex justify-center">
-          <Link href="/gallery" className="btn btn-primary">
-            Barcha rasmlarni ko‘rish
-            <Icon name="arrow-right" size={17} className="btn-ar" />
-          </Link>
-        </Reveal>
+          {/* closing banner tile — completes the grid on every breakpoint */}
+          <Reveal delay={180} className="col-span-2 lg:col-span-4">
+            <Link
+              href="/gallery"
+              className="n group relative flex items-center justify-between gap-6 overflow-hidden p-7 transition-transform duration-500 hover:-translate-y-1 sm:p-9"
+              aria-label="Galereya sahifasini ochish"
+            >
+              <span className="bg-stripes absolute inset-0 opacity-40" aria-hidden="true" />
+              <span className="relative">
+                <span className="kicker block">Galereya</span>
+                <span className="mt-2 block font-display text-[clamp(1.25rem,2.4vw,1.8rem)] font-extrabold leading-tight tracking-tight">
+                  Barcha lavhalar — <em className="em-accent">bir joyda</em>
+                </span>
+                <span className="mt-2 block text-[0.92rem] font-semibold text-muted">
+                  Rasmlar, videolar va albomlar to‘liq ekranda ko‘rish bilan
+                </span>
+              </span>
+              <span className="tile-arrow relative !h-14 !w-14 flex-none !rounded-[18px]">
+                <Icon name="arrow-right" size={22} />
+              </span>
+            </Link>
+          </Reveal>
+        </Stagger>
       </div>
     </section>
   );

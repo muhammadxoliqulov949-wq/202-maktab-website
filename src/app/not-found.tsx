@@ -16,7 +16,7 @@ export default function NotFound() {
       <div className="container-x relative py-28 text-center">
         <p className="eyebrow eyebrow-light justify-center">Xatolik 404</p>
         <h1 className="mx-auto mt-6 max-w-[16ch] font-display text-[clamp(3rem,10vw,6rem)] font-extrabold leading-none tracking-tight text-white">
-          Bu sahifa <em className="em-accent">sinfda emas.</em>
+          Bu sahifa <em className="em-accent-on-dark">sinfda emas.</em>
         </h1>
         <p className="mx-auto mt-6 max-w-[44ch] text-[1rem] leading-relaxed text-white/75">
           Siz izlagan manzil topilmadi yoki o‘chirilgan. Bosh sahifaga qayting yoki kerakli bo‘limni tanlang.
