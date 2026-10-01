@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal, RevealLines } from "@/components/motion/Reveal";
 import { Icon } from "@/components/ui/Icon";
+import { ParallaxImage } from "@/components/media/ParallaxImage";
 import { STATS } from "@/data/stats";
 import { StatCounter } from "@/components/sections/StatCounter";
 

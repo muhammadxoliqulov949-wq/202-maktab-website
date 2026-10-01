@@ -1338,3 +1338,82 @@ select.field {
 @media (prefers-reduced-motion: no-preference) {
   .parallax-media img { will-change: transform; }
 }
+
+/* ======================== STORYTELLING UPGRADE ======================== */
+
+/* hero — aniq viewport balandligi; qisqa ekranlarda tipografiya siqiladi */
+.hero-stage {
+  height: 100svh;
+  min-height: 600px;
+}
+
+@media (max-height: 800px) {
+  .hero-stage { min-height: 540px; }
+  .hero-stage .display { font-size: clamp(2rem, 1rem + 3.4vw, 3.3rem); }
+  .hero-stage .hero-support { margin-top: 1.1rem; font-size: 0.97rem; }
+  .hero-stage .hero-actions { margin-top: 1.6rem; }
+  .hero-stage .hero-bottom { padding-bottom: 1.5rem; }
+  .hero-stage .hero-eyebrow { margin-bottom: 1rem; }
+}
+
+/* noutbuk (1024–1280): to'liq desktop menyu sig'ishi uchun ixcham */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .nav-link { padding: 9px 9px; font-size: 0.85rem; }
+  .nav-cta-mini { padding: 10px 15px; font-size: 0.84rem; }
+}
+
+/* hikoya poyasi — bo'limlar indikatori (desktop) */
+.story-rail {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.story-rail a { display: flex; align-items: center; gap: 10px; }
+
+.story-rail .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  box-shadow: var(--shadow-flat);
+  transition: background-color 0.35s var(--ease), height 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+
+.story-rail .lbl {
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface);
+  padding: 5px 11px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-flat);
+  opacity: 0;
+  transform: translateX(8px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), color 0.3s var(--ease);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.story-rail a:hover .lbl { opacity: 1; transform: none; }
+
+.story-rail a.active .dot {
+  background: var(--accent);
+  height: 24px;
+  box-shadow: 0 0 0 5px var(--accent-soft);
+}
+
+.story-rail a.active .lbl { opacity: 1; transform: none; color: var(--accent-ink); }
+
+@media (max-width: 1279.98px) { .story-rail { display: none; } }
+
+/* inshootlar — scroll bilan boshqariladigan bosqichlar (barqaror balandlik) */
+.fac-step { min-height: 150px; }

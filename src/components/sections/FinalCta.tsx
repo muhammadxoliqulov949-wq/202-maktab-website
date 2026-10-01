@@ -1,20 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { Icon } from "@/components/ui/Icon";
+import { ParallaxImage } from "@/components/media/ParallaxImage";
 
 /** SECTION 11 — Final CTA over architectural imagery. */
 export function FinalCta() {
   return (
     <section className="section-pad relative overflow-hidden" aria-label="Bog'lanishga taklif">
-      <div className="absolute inset-0" aria-hidden="true">
-        <Image
-          src="/images/edu-events.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover"
-        />
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <ParallaxImage src="/images/edu-events.jpg" alt="" sizes="100vw" overscan="10%" />
         <div className="absolute inset-0 bg-gradient-to-r from-[rgba(10,18,33,0.92)] via-[rgba(10,18,33,0.82)] to-[rgba(10,18,33,0.6)]" />
       </div>
 

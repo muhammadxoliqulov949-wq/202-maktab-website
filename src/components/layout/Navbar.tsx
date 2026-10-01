@@ -185,7 +185,7 @@ export function Navbar() {
             </Link>
 
             {/* desktop nav */}
-            <nav className="mx-auto hidden items-center xl:flex" aria-label="Asosiy menyu">
+            <nav className="mx-auto hidden items-center lg:flex" aria-label="Asosiy menyu">
               {NAV_LINKS.map((l) => (
                 <Link key={l.href} href={l.href} className="nav-link" aria-current={isActive(l.href) ? "page" : undefined}>
                   {l.label}
@@ -195,7 +195,7 @@ export function Navbar() {
 
             {/* right cluster */}
             <div className={`flex flex-none items-center gap-2 ${"ml-auto xl:ml-0"}`}>
-              <div className="hidden md:block">
+              <div className="hidden xl:block">
                 <LocaleSwitch />
               </div>
               <ThemeToggle />
@@ -206,7 +206,7 @@ export function Navbar() {
               <button
                 ref={toggleRef}
                 type="button"
-                className="icon-btn xl:hidden"
+                className="icon-btn lg:hidden"
                 aria-expanded={menuOpen}
                 aria-controls="mobile-sheet"
                 aria-label={menuOpen ? "Menyuni yopish" : "Menyuni ochish"}
@@ -229,7 +229,7 @@ export function Navbar() {
         aria-label="Mobil menyu"
         aria-hidden={!menuOpen}
         inert={!menuOpen}
-        className={`sheet xl:hidden ${menuOpen ? "open" : ""}`}
+        className={`sheet lg:hidden ${menuOpen ? "open" : ""}`}
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="kicker">Menyu</span>

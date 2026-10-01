@@ -10,10 +10,27 @@ import { NewsSection } from "@/components/sections/NewsSection";
 import { QuickAccess } from "@/components/sections/QuickAccess";
 import { Location } from "@/components/sections/Location";
 import { FinalCta } from "@/components/sections/FinalCta";
+import { StoryRail, type StoryChapter } from "@/components/sections/StoryRail";
+
+/** Story chapters — the homepage reads as an 11-act story while scrolling. */
+const CHAPTERS: StoryChapter[] = [
+  { id: "bob-hero", label: "Bosh sahifa" },
+  { id: "bob-tanishuv", label: "Tanishuv" },
+  { id: "bob-raqamlar", label: "Raqamlarda" },
+  { id: "bob-talim", label: "Ta’lim" },
+  { id: "bob-hayot", label: "Maktab hayoti" },
+  { id: "bob-inshootlar", label: "Inshootlar" },
+  { id: "bob-jamoa", label: "Jamoa" },
+  { id: "bob-yangiliklar", label: "Yangiliklar" },
+  { id: "bob-havolalar", label: "Tez havolalar" },
+  { id: "bob-manzil", label: "Manzil" },
+  { id: "bob-aloqa", label: "Bog‘lanish" },
+];
 
 /**
- * HOMEPAGE — a paced visual story in 11 movements.
+ * HOMEPAGE — a paced visual story in 11 acts.
  * All content flows from src/data/* (DB-ready for Phase 3).
+ * Native scrolling throughout; motion layers on top (no hijacking).
  */
 export default function HomePage() {
   return (
@@ -23,27 +40,47 @@ export default function HomePage() {
       {/* values strip */}
       <Marquee />
       {/* 02 — introduction */}
-      <Intro />
+      <div id="bob-tanishuv">
+        <Intro />
+      </div>
       {/* 03 — school in numbers */}
-      <div className="section-pad-tight">
+      <div id="bob-raqamlar" className="section-pad-tight">
         <Stats />
       </div>
       {/* 04 — education experience */}
-      <EducationGrid />
+      <div id="bob-talim">
+        <EducationGrid />
+      </div>
       {/* 05 — immersive school life */}
-      <LifeMosaic />
+      <div id="bob-hayot">
+        <LifeMosaic />
+      </div>
       {/* 06 — learning environment */}
-      <FacilitiesStory />
+      <div id="bob-inshootlar">
+        <FacilitiesStory />
+      </div>
       {/* 07 — teachers */}
-      <TeamSection />
+      <div id="bob-jamoa">
+        <TeamSection />
+      </div>
       {/* 08 — news & events */}
-      <NewsSection />
+      <div id="bob-yangiliklar">
+        <NewsSection />
+      </div>
       {/* 09 — quick access */}
-      <QuickAccess />
+      <div id="bob-havolalar">
+        <QuickAccess />
+      </div>
       {/* 10 — location */}
-      <Location />
+      <div id="bob-manzil">
+        <Location />
+      </div>
       {/* 11 — final CTA */}
-      <FinalCta />
+      <div id="bob-aloqa">
+        <FinalCta />
+      </div>
+
+      <StoryRail items={CHAPTERS} />
     </>
   );
 }
