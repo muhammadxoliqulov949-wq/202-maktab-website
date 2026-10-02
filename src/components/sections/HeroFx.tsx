@@ -40,8 +40,9 @@ export function HeroFx() {
         content.style.opacity = String(Math.max(0, 1 - p * 1.05));
         if (cue) cue.style.opacity = String(Math.max(0, 1 - p * 2.4));
         if (stage3d) {
-          // 3D obyekt scroll'da sekinroq kichrayadi — chuqurlik hissi
-          stage3d.style.transform = `translate3d(${(p * 4).toFixed(2)}%, ${(-p * 34).toFixed(1)}px, 0) scale(${(1 - p * 0.1).toFixed(3)})`;
+          // 3D obyekt scroll'da sekinroq kichrayadi — chuqurlik hissi.
+          // MUHIM: CSS'dagi -50% vertikal markazlashni saqlab qolamiz (calc).
+          stage3d.style.transform = `translate3d(${(p * 4).toFixed(2)}%, calc(-50% - ${(p * 34).toFixed(1)}px), 0) scale(${(1 - p * 0.1).toFixed(3)})`;
           stage3d.style.opacity = String(Math.max(0, 1 - p * 1.25));
         }
         ticking = false;
