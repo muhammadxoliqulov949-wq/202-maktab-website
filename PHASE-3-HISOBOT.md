@@ -89,3 +89,36 @@ Regressiya yo‘q. Supabase rejimi kalit kelganda o‘lchanadi. *Lokal sandbox o
 5. i18n (uz/ru) va Redis/BullMQ adapterlari — Phase 2/3 interfeyslari tayyor.
 
 **STOP — Phase 3 tugadi. Phase 4 foydalanuvchining ochiq ko‘rsatmasisiz boshlanmaydi.**
+
+---
+
+## QO‘SHIMCHA (2026-10-02) — Verify Supabase tuzatishi (Phase 3 ning yakuniy qismi)
+
+**Muammo:** GitHub Actions’dagi «Verify Supabase (Phase 3)» 36/37 — yagona xato:
+`GET /api/v1/team` 16 emas, **12** a’zo qaytargandi.
+
+**Sabab (root cause):** API hech narsani filtrlamagan — **sahifalash**. `/api/v1/team`
+`limit` 1–50, **default 12** (`src/server/validation/schemas.ts`); Supabase repo
+`.range(0, 11)` yuboradi. Skript esa limitsiz so‘rab, `data.length === 16` ni kutgan.
+1-sahifada `p-01…p-12`, 2-sahifada esa **p-13…p-16** (Feruza Aliyeva, Shahzod Umarov,
+Xurshida Qodirova, Alisher Yo‘ldoshev) qolgan. Ular filtrlanmagan: barcha 16 yozuv
+`is_visible = true` (SEED.sql / seed.ts / sxema default’i), `meta.total` ham 16 edi.
+CI’dagi real baza dump’i buni tasdiqladi.
+
+**Qo‘shimcha topilgan nuqson:** tekshiruv skriptining admin smoke’i har yugurishda
+**append-only** `admin_audit_logs` yozuvlarini qoldiradi (audit o‘chirish API’si ataylab
+yo‘q) — shu sababli `admin_audit_logs: 0` talabi faqat birinchi yugurishda to‘g‘ri edi.
+
+**O‘zgargan fayllar (fix commitlari: `47dfa2f`, `e148229`, `9b2dbbd`):**
+- `scripts/verify-supabase.mjs` — team so‘rovi `?limit=50`; baribir **16** kutiladi va
+  `p-13…p-16` mavjudligi alohida tekshiriladi; audit-log jadvali o‘qilishi tekshiriladi;
+  yiqilgan check Actions’da annotation sifatida chiqadi. Check soni o‘zgarmagan: **37**.
+- `tests/api.test.mjs` — regressiya testi (default sahifa 12 / `total` 16 / 2 sahifa;
+  `limit=50` → 16 ta, `p-01…p-16` tartibida).
+- `docs/API.md` — team `limit` defaulti hujjatlashtirildi.
+- `.github/workflows/verify-supabase.yml` — vaqtinchalik push-trigger qaytarildi
+  (manual dispatch holatida qoldi).
+
+**Natija:** `npm test` 55/55 · `npm run build` OK · real Supabase bilan GitHub Actions
+run **37030681668 → success (37/37)**. PR: #2 (`arena/01a0fd4f-202-maktab-website`).
+API/repository/frontend xatti-harakati o‘zgartirilmagan.
