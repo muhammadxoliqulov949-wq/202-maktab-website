@@ -6,6 +6,10 @@ name: Verify Supabase (Phase 3)
 
 on:
   workflow_dispatch:
+  # TEMP (arena fix verification) — pushed commit o'z branchida bir marta
+  # ishga tushishi uchun; keyingi commitda qaytariladi.
+  push:
+    branches: [arena/01a0fd4f-202-maktab-website]
 
 jobs:
   verify:
