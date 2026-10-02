@@ -14,7 +14,8 @@
     "db:migrate": "echo 'SQL migratsiyalarni qollang: supabase/migrations/*.sql (SQL editor yoki supabase CLI)' && ls supabase/migrations/",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:dry": "tsx scripts/seed.ts --dry-run",
-    "db:seed:sql": "tsx scripts/seed-sql.ts"
+    "db:seed:sql": "tsx scripts/seed-sql.ts",
+    "verify:supabase": "node scripts/verify-supabase.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
