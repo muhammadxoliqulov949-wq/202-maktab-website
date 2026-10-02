@@ -34,7 +34,33 @@ const envSchema = z.object({
 
   /** spam filter: null | heuristic */
   SPAM_FILTER: z.enum(["null", "heuristic"]).default("heuristic"),
-});
+
+  /** ---- Phase 3: data provider & database ---- */
+  /** json = in-memory store seeded from src/data (dev/preview); supabase = PostgreSQL */
+  DATA_PROVIDER: z.enum(["json", "supabase"]).default("json"),
+  /** Server-side only. NEVER exposed to the browser or client bundles. */
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+
+  /** ---- Phase 3: development-only admin access (NOT production auth) ----
+   * When set, admin API requires header `x-admin-dev-token` to equal this.
+   * Production without this value disables the admin API entirely (503).
+   * Phase 4 replaces this with real authentication. */
+  ADMIN_DEV_TOKEN: z.string().min(16).optional(),
+  RATE_LIMIT_ADMIN_MAX: z.coerce.number().int().positive().default(120),
+  RATE_LIMIT_ADMIN_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+})
+  .superRefine((env, ctx) => {
+    // Fail fast: Supabase provider without credentials is a startup error.
+    if (env.DATA_PROVIDER === "supabase") {
+      if (!env.SUPABASE_URL) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["SUPABASE_URL"], message: "required when DATA_PROVIDER=supabase" });
+      }
+      if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["SUPABASE_SERVICE_ROLE_KEY"], message: "required when DATA_PROVIDER=supabase" });
+      }
+    }
+  });
 
 export type Env = z.infer<typeof envSchema>;
 

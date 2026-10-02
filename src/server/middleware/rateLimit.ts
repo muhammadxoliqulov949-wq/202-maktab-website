@@ -62,7 +62,7 @@ export function policyConfig(env: Env): Record<RatePolicyName, { limit: number; 
     contact: { limit: env.RATE_LIMIT_CONTACT_MAX, windowMs: env.RATE_LIMIT_CONTACT_WINDOW_MS },
     // reserved policies for later phases — configured now, applied later
     auth: { limit: 10, windowMs: 60_000 },
-    admin: { limit: 30, windowMs: 60_000 },
+    admin: { limit: env.RATE_LIMIT_ADMIN_MAX, windowMs: env.RATE_LIMIT_ADMIN_WINDOW_MS },
   };
 }
 
