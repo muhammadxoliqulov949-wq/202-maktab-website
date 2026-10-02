@@ -82,8 +82,8 @@ export async function adminDashboard(req: NextRequest) {
 export async function adminNewsList(req: NextRequest) {
   requireAdmin(req);
   const q = parseOr422(adminListQuery, searchParams(req));
-  const page = await adminService.newsList(q);
-  return ok(page.items, { page: page.page, limit: page.limit, total: page.total, totalPages: page.totalPages });
+  const [page, categories] = await Promise.all([adminService.newsList(q), adminService.newsCategories()]);
+  return ok(page.items, { page: page.page, limit: page.limit, total: page.total, totalPages: page.totalPages, categories });
 }
 
 export async function adminNewsGet(req: NextRequest, id?: string) {

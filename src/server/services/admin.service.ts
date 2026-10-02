@@ -91,6 +91,10 @@ export const adminService = {
     return repos().adminNews.list(q);
   },
 
+  async newsCategories(): Promise<string[]> {
+    return repos().adminNews.categories();
+  },
+
   async newsGet(id: string) {
     const row = await repos().adminNews.byId(id);
     if (!row) throw AppError.notFound("Article not found");
