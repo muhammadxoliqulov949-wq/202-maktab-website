@@ -172,9 +172,9 @@ export function Navbar() {
     <>
       <header className={`nav-shell anim-nav ${scrolled ? "scrolled" : ""}`} data-tone={tone}>
         <div className="container-x">
-          <div className="flex h-[76px] items-center gap-3 lg:h-[84px]">
+          <div className="nav-row flex h-[76px] items-center gap-3 lg:h-[84px]">
             {/* brand */}
-            <Link href="/" className="group flex flex-none items-center gap-3" aria-label="202-maktab — bosh sahifa">
+            <Link href="/" className="nav-brand group flex flex-none items-center gap-3" aria-label="202-maktab — bosh sahifa">
               <span className="grid h-[46px] w-[56px] flex-none place-items-center rounded-[15px] bg-gradient-to-br from-[color:var(--primary-soft)] to-[color:var(--primary)] shadow-[var(--shadow-btn-dark)] transition-transform duration-300 group-hover:-translate-y-0.5">
                 <span className="font-display text-[1.06rem] font-extrabold tracking-tight text-[color:var(--primary-contrast)]">
                   202
@@ -198,7 +198,7 @@ export function Navbar() {
             </nav>
 
             {/* right cluster */}
-            <div className={`flex flex-none items-center gap-2 ${"ml-auto xl:ml-0"}`}>
+            <div className={`nav-right flex flex-none items-center gap-2 ${"ml-auto xl:ml-0"}`}>
               <div className="hidden xl:block">
                 <LocaleSwitch />
               </div>

@@ -48,12 +48,12 @@
   --primary-soft: #24385c;
   --primary-contrast: #f6f8fc;
   --on-primary-muted: #bcc8dd;
-  --accent: #0d7d5c;
-  --accent-ink: #0a5a43;
-  --accent-soft: rgba(13, 125, 92, 0.12);
+  --accent: #ff6a00;
+  --accent-ink: #c2410c;
+  --accent-soft: rgba(255, 106, 0, 0.14);
   --line: #d4dbe7;
   --line-strong: #b8c2d3;
-  --success: #0d7d5c;
+  --success: #ea580c;
   --error: #b3261e;
   --warn: #94660f;
 
@@ -84,7 +84,7 @@
   --shadow-inset-sm: inset 2px 2px 5px var(--neu-d), inset -2px -2px 5px var(--neu-l);
   --shadow-btn-dark: 7px 7px 16px rgba(10, 20, 38, 0.32), -5px -5px 12px var(--neu-l);
   --shadow-btn-dark-hover: 10px 14px 26px rgba(10, 20, 38, 0.36), -6px -6px 14px var(--neu-l);
-  --shadow-btn-accent: 7px 7px 16px rgba(10, 74, 55, 0.32), -5px -5px 12px var(--neu-l);
+  --shadow-btn-accent: 8px 8px 20px rgba(146, 57, 0, 0.3), -5px -5px 12px var(--neu-l);
   --ring: 0 0 0 2px var(--bg), 0 0 0 4.5px var(--accent);
 
   --grad-ink: linear-gradient(180deg, rgba(11, 20, 36, 0.66), rgba(11, 20, 36, 0.24) 46%, rgba(11, 20, 36, 0.6));
@@ -125,12 +125,12 @@
   --primary-soft: #f6f8fd;
   --primary-contrast: #14203a;
   --on-primary-muted: #55688c;
-  --accent: #3cba92;
-  --accent-ink: #7fd8b9;
-  --accent-soft: rgba(60, 186, 146, 0.16);
+  --accent: #ff8a2b;
+  --accent-ink: #ffb066;
+  --accent-soft: rgba(255, 138, 43, 0.18);
   --line: #26344f;
   --line-strong: #344565;
-  --success: #3cba92;
+  --success: #fb923c;
   --error: #e5645c;
   --warn: #d9a44a;
 
@@ -153,7 +153,7 @@
   --neu-l2: rgba(126, 156, 210, 0.05);
   --shadow-btn-dark: 7px 7px 16px rgba(3, 8, 18, 0.6), -5px -5px 12px var(--neu-l);
   --shadow-btn-dark-hover: 10px 14px 26px rgba(3, 8, 18, 0.65), -6px -6px 14px var(--neu-l);
-  --shadow-btn-accent: 7px 7px 16px rgba(10, 74, 55, 0.4), -5px -5px 12px var(--neu-l);
+  --shadow-btn-accent: 8px 8px 20px rgba(120, 46, 0, 0.42), -5px -5px 12px var(--neu-l);
   --ring: 0 0 0 2px var(--bg), 0 0 0 4.5px var(--accent);
   --grad-ink: linear-gradient(180deg, rgba(6, 12, 24, 0.72), rgba(6, 12, 24, 0.3) 46%, rgba(6, 12, 24, 0.68));
   --hero-scrim: linear-gradient(
@@ -307,7 +307,7 @@ button { font: inherit; color: inherit; }
 /* bright emerald tuned for dark overlays — WCAG-safe on hero/CTA imagery */
 .em-accent-on-dark {
   font-style: normal;
-  color: #63d3a7;
+  color: #ffb066;
 }
 [data-theme="dark"] .em-accent-on-dark { color: var(--accent-ink); }
 
@@ -379,13 +379,13 @@ button { font: inherit; color: inherit; }
 }
 
 .btn-accent {
-  background: linear-gradient(145deg, #12896a, var(--accent));
+  background: linear-gradient(145deg, #ff8f3c, var(--accent));
   color: #ffffff;
   box-shadow: var(--shadow-btn-accent);
 }
-[data-theme="dark"] .btn-accent { color: #07130d; }
+[data-theme="dark"] .btn-accent { color: #2b1200; }
 @media (hover: hover) {
-  .btn-accent:hover { transform: translateY(-2px); box-shadow: 10px 14px 26px rgba(10, 74, 55, 0.4), -6px -6px 14px var(--neu-l); }
+  .btn-accent:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(255, 106, 0, 0.42), -6px -6px 14px var(--neu-l); }
 }
 
 .btn-ghost {
@@ -641,11 +641,11 @@ select.field {
 .nav-shell[data-tone="over-media"]:not(.scrolled) .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
 
 .nav-shell[data-tone="over-media"]:not(.scrolled) .nav-cta-mini {
-  background: linear-gradient(145deg, #12896a, var(--accent));
+  background: linear-gradient(145deg, #ff8f3c, var(--accent));
   color: #ffffff;
   box-shadow: 7px 7px 16px rgba(4, 24, 17, 0.35), -4px -4px 12px rgba(255, 255, 255, 0.06);
 }
-.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-cta-mini:hover { box-shadow: 10px 14px 26px rgba(4, 24, 17, 0.4); }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-cta-mini:hover { box-shadow: 0 16px 38px rgba(255, 106, 0, 0.45); }
 
 /* dropdown */
 .dropdown-panel {
@@ -978,7 +978,7 @@ select.field {
 }
 
 @media (hover: hover) {
-  .tile:hover .tile-arrow { transform: translate(4px, -4px) rotate(0.001deg); color: #fff; background: var(--accent); box-shadow: 6px 6px 14px rgba(10, 74, 55, 0.35); }
+  .tile:hover .tile-arrow { transform: translate(4px, -4px) rotate(0.001deg); color: #fff; background: var(--accent); box-shadow: 0 12px 30px rgba(255, 106, 0, 0.4); }
 }
 
 /* ======================== MEDIA CARDS (life gallery) ======================== */
@@ -1563,8 +1563,8 @@ select.field {
 }
 
 .btn-accent {
-  background: linear-gradient(150deg, color-mix(in srgb, #12896a 88%, transparent), color-mix(in srgb, var(--accent) 92%, transparent));
-  box-shadow: 0 14px 30px rgba(9, 64, 46, 0.26), inset 0 0 0 1px rgba(255, 255, 255, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(150deg, color-mix(in srgb, #ff8f3c 88%, transparent), color-mix(in srgb, var(--accent) 92%, transparent));
+  box-shadow: 0 14px 34px rgba(255, 106, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
 .btn-ghost { color: var(--ink); box-shadow: var(--glass-shadow-sm), var(--glass-ring); }
@@ -1762,7 +1762,7 @@ select.field {
   border-radius: 50%;
   opacity: 0.75;
   mix-blend-mode: screen;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 62%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 26%, transparent) 0%, transparent 62%);
 }
 
 /* ---------- 3) Hero: 3D "bilim yadrosi" + shisha statistik panel ---------- */
@@ -1795,57 +1795,141 @@ select.field {
   position: absolute;
   inset: 14%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(62, 224, 166, 0.26) 0%, transparent 64%);
+  background: radial-gradient(circle, rgba(255, 122, 26, 0.3) 0%, transparent 64%);
   filter: blur(34px);
   z-index: -1;
 }
 
-/* CSS 3D zaxira (WebGL yo'q / reduced-motion) */
-.hero3d-fallback { position: absolute; inset: 0; display: grid; place-items: center; transform-style: preserve-3d; perspective: 900px; }
+/* CSS 3D zaxira — qog'oz kitob (WebGL yo'q / reduced-motion) */
+.herobook,
+.herobook-canvas { position: relative; width: 100%; height: 100%; }
 
-.hero3d-core {
+.herobook-stage { position: absolute; inset: 0; }
+
+.herobook-fallback {
+  position: absolute;
+  inset: 8% 6% 22%;
   display: grid;
   place-items: center;
-  width: 34%;
-  aspect-ratio: 1;
-  border-radius: 50%;
+  perspective: 1100px;
+}
+
+.herobook-fallback-inner {
+  position: relative;
+  width: min(86%, 420px);
+  padding: 30px 30px 34px;
+  border-radius: 18px 26px 26px 18px;
+  background: linear-gradient(150deg, #fffdf7, #f6ead6);
+  border-left: 10px solid var(--accent);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px rgba(255, 106, 0, 0.18);
+  transform: rotateY(-14deg) rotateX(4deg);
+  animation: bookFloat 7s var(--ease) infinite;
+}
+
+.herobook-mark {
+  position: absolute;
+  top: 6px;
+  left: 16px;
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
-  color: var(--primary-contrast);
-  background: linear-gradient(150deg, color-mix(in srgb, var(--primary-soft) 85%, transparent), color-mix(in srgb, var(--primary) 92%, transparent));
-  box-shadow: var(--glass-shadow), inset 0 0 0 1px color-mix(in srgb, var(--primary-contrast) 22%, transparent);
-  animation: coreFloat 6s var(--ease) infinite;
+  font-size: 4.6rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--accent) 26%, transparent);
 }
 
-.hero3d-ring {
+.herobook-fallback-text {
+  position: relative;
+  margin: 12px 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 1.6vw, 1.32rem);
+  font-weight: 700;
+  line-height: 1.45;
+  color: #26364f;
+}
+
+.herobook-fallback-src { font-size: 0.82rem; font-weight: 750; color: var(--accent-ink); }
+
+.herobook-fallback-lines {
   position: absolute;
-  inset: 8%;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
-  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 16%, transparent) inset;
-  animation: ringSpin 22s linear infinite;
+  inset: auto 12% -14px 12%;
+  height: 14px;
+  border-radius: 0 0 14px 14px;
+  background: repeating-linear-gradient(180deg, #f3e7d3 0 3px, #e8d9c0 3px 5px);
+  transform: rotateY(-14deg);
 }
 
-.hero3d-ring-1 { transform: rotateX(74deg); }
-.hero3d-ring-2 { inset: 18%; border-color: color-mix(in srgb, #9dc4ff 40%, transparent); animation-duration: 16s; animation-direction: reverse; transform: rotateX(66deg) rotateY(18deg); }
-.hero3d-ring-3 { inset: 28%; animation-duration: 11s; transform: rotateX(58deg) rotateY(-14deg); }
+@keyframes bookFloat {
+  0%, 100% { transform: rotateY(-14deg) rotateX(4deg) translateY(-6px); }
+  50% { transform: rotateY(-10deg) rotateX(2deg) translateY(8px); }
+}
 
-.hero3d-node {
+/* kitob ostidagi matn va boshqaruv (hamma ekranda ishlaydi) */
+.herobook-caption {
   position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  background: var(--accent);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 45%, transparent);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
 }
 
-.hero3d-node-1 { top: 12%; left: 52%; animation: coreFloat 5s var(--ease) infinite; }
-.hero3d-node-2 { top: 62%; left: 18%; animation: coreFloat 7s var(--ease) infinite reverse; background: #9dc4ff; }
-.hero3d-node-3 { top: 74%; left: 74%; animation: coreFloat 6.4s var(--ease) infinite; }
+.herobook-quote {
+  max-width: 34ch;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+  font-weight: 700;
+  line-height: 1.4;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(6, 14, 30, 0.6);
+  transition: opacity 0.4s var(--ease);
+}
 
-@keyframes ringSpin { to { rotate: 360deg; } }
-@keyframes coreFloat { 0%, 100% { translate: 0 -6px; } 50% { translate: 0 10px; } }
+.herobook-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.herobook-src {
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.herobook-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 750;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  transition: background-color 0.25s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+
+.herobook-next span { font-size: 0.95rem; line-height: 1; }
+
+.herobook-next:hover {
+  background: color-mix(in srgb, var(--accent) 88%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow: 0 12px 30px rgba(255, 106, 0, 0.42);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1023.98px) {
+  .herobook-fallback { inset: 4% 10% 8%; }
+  .herobook-fallback-inner { width: min(92%, 360px); padding: 22px 22px 24px; }
+}
 
 /* hero statistik "shisha" paneli */
 .hero-stat {
@@ -1993,7 +2077,7 @@ select.field {
 @media (prefers-reduced-motion: reduce) {
   .ambient-media.is-entering { animation: none; opacity: var(--ambient-strength); transform: none; filter: none; }
   .tilt-ready { transform: none !important; }
-  .hero3d-core, .hero3d-ring, .hero3d-node { animation: none !important; }
+  .herobook-fallback-inner { animation: none !important; }
   [data-parallax] { transform: none !important; }
   .js [data-reveal="flip"], .js [data-reveal="depth"], .js [data-reveal="tilt-l"], .js [data-reveal="tilt-r"] { opacity: 1 !important; transform: none !important; }
 }
@@ -2002,3 +2086,195 @@ select.field {
   .cursor-spot { display: none; }
   .hero-stat { background: var(--primary); }
 }
+
+/* ============================================================================
+   DESIGN 4.0 — OLOVRANG AKSENT · HOVER'DA AYLANUVCHI OLOV HALQASI
+   ----------------------------------------------------------------------------
+   1) Barcha tugma/kartalar hover'da: olovrang nur halqasi element chetida
+      aylanib chiqadi (`::before` + conic-gradient), kursor ketganda yo'qoladi.
+   2) Tepa bardagi bo'limlar: hover'da 3D kattalashadi + olovrang tusga kiradi,
+      qolgan bo'limlar va bar qismlari silliq xiralashadi (o'qib bo'lmaydi).
+   ============================================================================ */
+
+/* ---------- 1) Olov halqasi (lantern ring) ---------- */
+
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.btn,
+.icon-btn,
+.n,
+.qlink,
+.fpill,
+.faq-item,
+.chip,
+.dropdown-panel,
+.hero-stat,
+.tile,
+.person,
+.mediacard {
+  position: relative;
+  isolation: isolate;
+}
+
+.btn::before,
+.icon-btn::before,
+.n::before,
+.qlink::before,
+.fpill::before,
+.faq-item::before,
+.chip::before,
+.dropdown-panel::before,
+.hero-stat::before,
+.tile::before,
+.person::before,
+.mediacard::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.6px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+  background: conic-gradient(
+    from var(--ring-angle),
+    transparent 0deg,
+    transparent 34deg,
+    rgba(255, 122, 26, 0.35) 68deg,
+    #ff6a00 104deg,
+    #ffd7a3 122deg,
+    #ff6a00 140deg,
+    rgba(255, 122, 26, 0.35) 176deg,
+    transparent 210deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: opacity 0.35s var(--ease);
+  filter: drop-shadow(0 0 6px rgba(255, 106, 0, 0.55));
+}
+
+.btn:not(.btn-quiet):hover::before,
+.icon-btn:hover::before,
+.n-card:hover::before,
+.qlink:hover::before,
+.fpill:hover::before,
+.faq-item:hover::before,
+.chip:hover::before,
+.dropdown-panel:hover::before,
+.hero-stat:hover::before,
+.tile:hover::before,
+.person:hover::before,
+.mediacard:hover::before {
+  opacity: 1;
+  animation: ringSweep 1.9s linear infinite;
+}
+
+.icon-btn::before,
+.chip::before,
+.fpill::before { padding: 1.3px; inset: -1px; }
+
+@keyframes ringSweep {
+  to { --ring-angle: 360deg; }
+}
+
+/* `@property` qo'llamaydigan brauzerlar uchun zaxira: statik olov halqasi */
+@supports not (background: conic-gradient(from var(--ring-angle), #000, #fff)) {
+  .btn:hover::before,
+  .n-card:hover::before,
+  .qlink:hover::before,
+  .icon-btn:hover::before,
+  .fpill:hover::before,
+  .chip:hover::before {
+    background: linear-gradient(135deg, rgba(255, 106, 0, 0.9), rgba(255, 215, 163, 0.55), rgba(255, 106, 0, 0.9));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn::before, .icon-btn::before, .n::before, .qlink::before, .fpill::before,
+  .faq-item::before, .chip::before, .dropdown-panel::before, .hero-stat::before,
+  .tile::before, .person::before, .mediacard::before { animation: none !important; }
+}
+
+/* ---------- 2) Tepa bar: 3D kattalashuv + qolganlarining xiralashishi ---------- */
+
+@media (hover: hover) and (min-width: 1024px) {
+  .nav-shell nav[aria-label="Asosiy menyu"] {
+    perspective: 720px;
+    transform-style: preserve-3d;
+  }
+
+  .nav-link {
+    transform-style: preserve-3d;
+    transition: transform 0.42s var(--ease-out), color 0.35s var(--ease), filter 0.42s var(--ease),
+      opacity 0.42s var(--ease), text-shadow 0.42s var(--ease), background-color 0.3s var(--ease);
+  }
+
+  /* boshqa bo'limlar: silliq va o'qib bo'lmaydigan darajada xira */
+  .nav-shell nav[aria-label="Asosiy menyu"]:hover .nav-link {
+    filter: blur(4.2px) saturate(0.35);
+    opacity: 0.34;
+    transform: scale(0.94);
+  }
+
+  /* kursor ostidagi bo'lim: 3D kattalashadi + olovrang */
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover {
+    filter: none;
+    opacity: 1;
+    color: var(--accent);
+    transform: perspective(720px) translateZ(52px) scale(1.18) rotateX(-4deg);
+    text-shadow: 0 8px 26px rgba(255, 106, 0, 0.55), 0 0 14px rgba(255, 138, 43, 0.4);
+    background: transparent;
+  }
+
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover::after {
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(255, 106, 0, 0.7);
+  }
+
+  /* bar'ning qolgan qismlari ham silliq hiralashadi */
+  .nav-row:has(nav[aria-label="Asosiy menyu"]:hover) .nav-brand,
+  .nav-row:has(nav[aria-label="Asosiy menyu"]:hover) .nav-right {
+    filter: blur(2.6px) saturate(0.5);
+    opacity: 0.42;
+    transition: filter 0.45s var(--ease), opacity 0.45s var(--ease);
+  }
+
+  .nav-brand,
+  .nav-right { transition: filter 0.45s var(--ease), opacity 0.45s var(--ease); }
+
+  /* ochilgan mobil varaq ham xira bo'lmasin */
+  .nav-shell nav[aria-label="Mobil asosiy menyu"] .nav-link { filter: none !important; }
+}
+
+/* ---------- 3) Kartalar hover'ida olovrang urg'u ---------- */
+
+.n-card:hover,
+.qlink:hover,
+.tile:hover,
+.person:hover {
+  box-shadow: var(--shadow-hover), 0 18px 46px rgba(255, 106, 0, 0.16);
+}
+
+.n-card:hover .h3,
+.qlink:hover .font-display { color: var(--ink); }
+
+.qlink:hover .qlink-arrow { color: var(--accent); transform: translateX(5px); }
+
+/* ---------- 4) Olovrang urg'u tafsilotlari ---------- */
+
+.fac-step.active .fac-step-title { color: var(--accent-ink); }
+.fac-bar > i { background: linear-gradient(90deg, #ff8f3c, var(--accent)); }
+.badge-dot { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.tile-ico { color: var(--accent-ink); }
+.person-accent { background: linear-gradient(90deg, var(--accent), transparent); }
+.eyebrow { color: var(--accent-ink); }
+.eyebrow::before { background: linear-gradient(90deg, #ff8f3c, var(--accent)); }
+.tag { background: var(--accent-soft); color: var(--accent-ink); }
+::selection { background: var(--accent); color: #1b0d00; }

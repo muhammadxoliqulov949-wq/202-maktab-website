@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { SmartVideo } from "@/components/media/SmartVideo";
 import { HeroFx } from "@/components/sections/HeroFx";
-import { Hero3D } from "@/components/sections/Hero3D";
+import { HeroBook3D } from "@/components/sections/HeroBook3D";
 import { site } from "@/data/site";
 
 /**
@@ -27,10 +27,10 @@ export function Hero() {
 
       <HeroFx />
 
-      {/* 3D sahna — matn yonidagi bo'sh joyda (mustaqil qatlam) */}
-      <div className="hero-3d-wrap anim-fade anim-fade-3" data-hero-3d aria-hidden="true">
-        <Hero3D className="hero3d-canvas" />
-        <span className="hero-3d-glow" />
+      {/* 3D kitob — matn yonidagi bo'sh joyda (hikmat sahifalari) */}
+      <div className="hero-3d-wrap anim-fade anim-fade-3" data-hero-3d>
+        <HeroBook3D className="herobook-canvas" />
+        <span className="hero-3d-glow" aria-hidden="true" />
       </div>
 
       {/* content */}

@@ -42,7 +42,7 @@ export function ScrollProgress() {
     <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 z-[95] h-[3px]">
       <div
         ref={ref}
-        className="h-full origin-left bg-gradient-to-r from-[color:var(--accent)] to-[#2fb98a] opacity-0 transition-opacity duration-300"
+        className="h-full origin-left bg-gradient-to-r from-[color:var(--accent)] to-[#ffb066] opacity-0 transition-opacity duration-300"
         style={{ transform: "scaleX(0)" }}
       />
     </div>
