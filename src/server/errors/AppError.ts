@@ -45,6 +45,15 @@ export class AppError extends Error {
   static internal(message = "Internal server error") {
     return new AppError("INTERNAL_ERROR", 500, message);
   }
+  static conflict(message = "Conflict") {
+    return new AppError("CONFLICT", 409, message);
+  }
+  static unauthorized(message = "Unauthorized") {
+    return new AppError("UNAUTHORIZED", 401, message);
+  }
+  static serviceUnavailable(message = "Service temporarily unavailable") {
+    return new AppError("SERVICE_UNAVAILABLE", 503, message);
+  }
 }
 
 /** Convert zod issues into safe field details. */

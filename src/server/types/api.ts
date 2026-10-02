@@ -26,7 +26,9 @@ export type ApiErrorCode =
   | "UNSUPPORTED_MEDIA_TYPE"
   | "RATE_LIMITED"
   | "INTERNAL_ERROR"
-  | "SERVICE_UNAVAILABLE";
+  | "SERVICE_UNAVAILABLE"
+  | "CONFLICT"
+  | "UNAUTHORIZED";
 
 export type ApiFailure = {
   success: false;

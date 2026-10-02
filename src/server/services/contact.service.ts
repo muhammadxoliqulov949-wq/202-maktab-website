@@ -5,6 +5,7 @@ import { metrics } from "@/server/observability/metrics";
 import { contactBody, type ContactInput } from "@/server/validation/schemas";
 import { AppError, zodDetails } from "@/server/errors/AppError";
 import { getEnv } from "@/server/config/env";
+import { repos } from "@/server/repositories";
 
 /**
  * Spam-protection abstraction.
@@ -37,9 +38,9 @@ export function getSpamFilter(): SpamFilter {
 
 /**
  * ContactSubmissionService — validates, normalizes, spam-checks and hands the
- * submission to the queue. Phase 2 does NOT persist submissions; the queue
- * handler logs a count only. Phase 3/4: register a handler that stores to DB
- * and/or sends email — this service does not change.
+ * submission to the queue. Phase 3: the queue handler persists via the
+ * configured ContactSubmissionRepository (json = dev memory, supabase = DB).
+ * Email delivery remains a Phase 4 concern.
  */
 export class ContactSubmissionService {
   private readonly spam: SpamFilter;
@@ -72,6 +73,15 @@ export class ContactSubmissionService {
       // Deliberately indistinguishable from accepted — do not feed spammers signals.
       metrics.increment("contact_spam_total");
       logger.warn("contact_spam_detected", { reason: spam.reason });
+      // Phase 3: spam is stored with status=spam so admins can audit it;
+      // the HTTP response stays silent.
+      await queue.enqueue("contact-submission", {
+        name: input.name,
+        contact: input.contact,
+        topic: input.topic,
+        message: input.message,
+        status: "spam",
+      });
       return { accepted: true, topic: input.topic };
     }
 
@@ -79,8 +89,8 @@ export class ContactSubmissionService {
       name: input.name,
       contact: input.contact,
       topic: input.topic,
-      messageLength: input.message.length, // never log full message content
-      at: new Date().toISOString(),
+      message: input.message,
+      status: "new",
     });
     metrics.increment("contact_accepted_total");
 
@@ -97,9 +107,34 @@ export function getContactService(): ContactSubmissionService {
   return g.__m202ContactService;
 }
 
-/** Phase 2 queue processor: audit-log only (privacy: no content, no raw contact). */
+/**
+ * Queue processor (Phase 3): persists the submission via the configured
+ * repository (json = in-memory dev store, supabase = PostgreSQL) and logs
+ * COUNTS only — never message content, never raw contact data.
+ */
 export function registerContactQueueHandler() {
-  queue.process<{ topic: string; messageLength: number }>("contact-submission", (task) => {
-    logger.info("contact_submission", { topic: task.topic, messageLength: task.messageLength });
-  });
+  queue.process<{ name: string; contact: string; topic: string; message: string; status: "new" | "spam" }>(
+    "contact-submission",
+    async (task) => {
+      try {
+        await repos().submissions.save({
+          id: "",
+          name: task.name,
+          contact: task.contact,
+          topic: task.topic,
+          message: task.message,
+          status: task.status,
+          source: "website",
+          createdAt: new Date().toISOString(),
+          handledAt: null,
+        });
+        logger.info("contact_submission", { topic: task.topic, messageLength: task.message.length, submissionStatus: task.status });
+      } catch (err) {
+        // Storage failure must not crash the queue; the visitor already got
+        // an honest response. Alert via logs/metrics.
+        metrics.increment("contact_persist_failed_total");
+        logger.error("contact_persist_failed", { error: err instanceof Error ? err.message : String(err) });
+      }
+    }
+  );
 }

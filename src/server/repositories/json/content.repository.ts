@@ -1,68 +1,51 @@
-import { site } from "@/data/site";
-import { STATS } from "@/data/stats";
-import { EDU_FEATURES } from "@/data/education";
-import { FACILITIES } from "@/data/facilities";
-import { FAQS } from "@/data/faq";
-import { QUICK_LINKS } from "@/data/quicklinks";
 import type { ContentRepository } from "@/server/repositories/interfaces";
+import { getStore } from "@/server/repositories/store";
+import {
+  toContactInfoDto,
+  toFacilityItem,
+  toFaqItem,
+  toFeatureItem,
+  toQuickLinkItem,
+  toSiteConfigDto,
+  toStatItem,
+} from "@/server/repositories/mappers";
 
 /**
- * Static content repository — single source of truth remains the Phase 1
- * content modules (src/data/*). Map components receive lat/lng via
- * contact-info so a future DB can supply verified coordinates without
- * redesigning the map UI.
+ * Static content repository (JSON provider) — reads the in-memory store so
+ * admin edits (DATA_PROVIDER=json) are reflected after cache invalidation.
  */
 class JsonContentRepository implements ContentRepository {
   async siteConfig() {
-    return {
-      name: site.name,
-      fullName: site.fullName,
-      tagline: site.tagline,
-      district: site.district,
-      address: site.address,
-      established: site.established,
-      locale: "uz",
-      social: site.social,
-    };
+    return toSiteConfigDto(getStore().settings);
   }
 
   async stats() {
-    return { items: STATS, count: STATS.length };
+    const items = getStore().stats.filter((s) => s.isVisible).sort((a, b) => a.sortOrder - b.sortOrder).map(toStatItem);
+    return { items, count: items.length };
   }
 
   async features() {
-    return { items: EDU_FEATURES, count: EDU_FEATURES.length };
+    const items = getStore().features.filter((f) => f.isVisible).sort((a, b) => a.sortOrder - b.sortOrder).map(toFeatureItem);
+    return { items, count: items.length };
   }
 
   async facilities() {
-    return { items: FACILITIES, count: FACILITIES.length };
+    const items = getStore().facilities.filter((f) => f.isVisible).sort((a, b) => a.sortOrder - b.sortOrder).map(toFacilityItem);
+    return { items, count: items.length };
   }
 
   async faqs() {
-    return { items: FAQS, count: FAQS.length };
+    const items = getStore().faqs.filter((f) => f.isVisible).sort((a, b) => a.sortOrder - b.sortOrder).map(toFaqItem);
+    return { items, count: items.length };
   }
 
   async quickLinks() {
-    return { items: QUICK_LINKS, count: QUICK_LINKS.length };
+    const items = getStore().quickLinks.filter((q) => q.isVisible).sort((a, b) => a.sortOrder - b.sortOrder).map(toQuickLinkItem);
+    return { items, count: items.length };
   }
 
   async contactInfo() {
-    return {
-      address: site.address,
-      phone: site.phone,
-      mobile: site.mobile,
-      email: site.email,
-      hours: site.hours,
-      map: {
-        latitude: 41.2797,
-        longitude: 69.2404,
-        embed: site.map.embed,
-        route: site.map.route,
-        view: site.map.view,
-        verified: false, // Phase 5 replaces with verified coordinates
-      },
-      social: site.social,
-    };
+    return toContactInfoDto(getStore().contactInfo);
   }
 }
 

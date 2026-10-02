@@ -1,9 +1,6 @@
 import { CACHE_TTL } from "@/server/config/env";
 import { cached, cacheKeys, cachePrefixes, getCache } from "@/server/cache";
-import { jsonNewsRepository } from "@/server/repositories/json/news.repository";
-import { jsonTeamRepository } from "@/server/repositories/json/team.repository";
-import { jsonGalleryRepository } from "@/server/repositories/json/gallery.repository";
-import { jsonContentRepository } from "@/server/repositories/json/content.repository";
+import { repos } from "@/server/repositories";
 import { AppError } from "@/server/errors/AppError";
 import type { NewsQuery, TeamQuery, GalleryQuery } from "@/server/repositories/interfaces";
 import { createHash } from "node:crypto";
@@ -23,11 +20,11 @@ function hashQuery(q: Record<string, unknown>): string {
 export const newsService = {
   async list(q: NewsQuery) {
     const key = cacheKeys.newsList(hashQuery(q as Record<string, unknown>));
-    return cached(key, CACHE_TTL.newsList * 1000, () => jsonNewsRepository.list(q));
+    return cached(key, CACHE_TTL.newsList * 1000, () => repos().news.list(q));
   },
   async bySlug(slug: string) {
     return cached(cacheKeys.newsItem(slug), CACHE_TTL.newsItem * 1000, async () => {
-      const item = await jsonNewsRepository.bySlug(slug);
+      const item = await repos().news.bySlug(slug);
       if (!item) throw AppError.notFound("News article not found");
       return item;
     });
@@ -39,11 +36,11 @@ export const newsService = {
 export const teamService = {
   async list(q: TeamQuery) {
     const key = cacheKeys.teamList(hashQuery(q as Record<string, unknown>));
-    return cached(key, CACHE_TTL.teamList * 1000, () => jsonTeamRepository.list(q));
+    return cached(key, CACHE_TTL.teamList * 1000, () => repos().team.list(q));
   },
   async byId(id: string) {
     return cached(cacheKeys.teamItem(id), CACHE_TTL.teamItem * 1000, async () => {
-      const item = await jsonTeamRepository.byId(id);
+      const item = await repos().team.byId(id);
       if (!item) throw AppError.notFound("Team member not found");
       return item;
     });
@@ -55,11 +52,11 @@ export const teamService = {
 export const galleryService = {
   async list(q: GalleryQuery) {
     const key = cacheKeys.galleryList(hashQuery(q as Record<string, unknown>));
-    return cached(key, CACHE_TTL.galleryList * 1000, () => jsonGalleryRepository.list(q));
+    return cached(key, CACHE_TTL.galleryList * 1000, () => repos().gallery.list(q));
   },
   async byId(id: string) {
     return cached(cacheKeys.galleryItem(id), CACHE_TTL.galleryItem * 1000, async () => {
-      const item = await jsonGalleryRepository.byId(id);
+      const item = await repos().gallery.byId(id);
       if (!item) throw AppError.notFound("Gallery item not found");
       return item;
     });
@@ -69,16 +66,18 @@ export const galleryService = {
 /* ---------------- Static content ---------------- */
 
 export const contentService = {
-  siteConfig: () => cached(cacheKeys.siteConfig(), CACHE_TTL.siteConfig * 1000, () => jsonContentRepository.siteConfig()),
-  stats: () => cached(cacheKeys.stats(), CACHE_TTL.stats * 1000, () => jsonContentRepository.stats()),
-  features: () => cached(cacheKeys.features(), CACHE_TTL.features * 1000, () => jsonContentRepository.features()),
-  facilities: () => cached(cacheKeys.facilities(), CACHE_TTL.facilities * 1000, () => jsonContentRepository.facilities()),
-  faqs: () => cached(cacheKeys.faqs(), CACHE_TTL.faqs * 1000, () => jsonContentRepository.faqs()),
-  quickLinks: () => cached(cacheKeys.quickLinks(), CACHE_TTL.quickLinks * 1000, () => jsonContentRepository.quickLinks()),
-  contactInfo: () => cached(cacheKeys.contactInfo(), CACHE_TTL.contactInfo * 1000, () => jsonContentRepository.contactInfo()),
+  siteConfig: () => cached(cacheKeys.siteConfig(), CACHE_TTL.siteConfig * 1000, () => repos().content.siteConfig()),
+  stats: () => cached(cacheKeys.stats(), CACHE_TTL.stats * 1000, () => repos().content.stats()),
+  features: () => cached(cacheKeys.features(), CACHE_TTL.features * 1000, () => repos().content.features()),
+  facilities: () => cached(cacheKeys.facilities(), CACHE_TTL.facilities * 1000, () => repos().content.facilities()),
+  faqs: () => cached(cacheKeys.faqs(), CACHE_TTL.faqs * 1000, () => repos().content.faqs()),
+  quickLinks: () => cached(cacheKeys.quickLinks(), CACHE_TTL.quickLinks * 1000, () => repos().content.quickLinks()),
+  contactInfo: () => cached(cacheKeys.contactInfo(), CACHE_TTL.contactInfo * 1000, () => repos().content.contactInfo()),
 };
 
-/* ---------------- Invalidation (Phase 3 admin entry points) ---------------- */
+/* ---------------- Targeted invalidation (admin mutation entry points) ----------------
+ * Each mutation invalidates ONLY the affected namespace — never the whole cache.
+ */
 
 export const cacheInvalidation = {
   async invalidateNews() {
@@ -104,5 +103,25 @@ export const cacheInvalidation = {
   async invalidateSiteConfig() {
     await getCache().del(cacheKeys.siteConfig());
     return { key: cacheKeys.siteConfig() };
+  },
+  async invalidateStats() {
+    await getCache().del(cacheKeys.stats());
+    return { key: cacheKeys.stats() };
+  },
+  async invalidateFeatures() {
+    await getCache().del(cacheKeys.features());
+    return { key: cacheKeys.features() };
+  },
+  async invalidateFacilities() {
+    await getCache().del(cacheKeys.facilities());
+    return { key: cacheKeys.facilities() };
+  },
+  async invalidateQuickLinks() {
+    await getCache().del(cacheKeys.quickLinks());
+    return { key: cacheKeys.quickLinks() };
+  },
+  async invalidateContactInfo() {
+    await getCache().del(cacheKeys.contactInfo());
+    return { key: cacheKeys.contactInfo() };
   },
 };

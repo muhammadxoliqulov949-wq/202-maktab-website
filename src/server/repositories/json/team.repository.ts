@@ -1,25 +1,13 @@
-import { PEOPLE } from "@/data/people";
-import type { TeamRepository, TeamQuery } from "@/server/repositories/interfaces";
+import type { TeamQuery, TeamRepository } from "@/server/repositories/interfaces";
+import type { TeamListItemDto, TeamItemDto } from "@/server/repositories/types";
+import { getStore } from "@/server/repositories/store";
+import { toTeamItem, toTeamListItem } from "@/server/repositories/mappers";
 import { paginate } from "@/server/repositories/json/news.repository";
 
-/** In-memory team repository (Phase 1 prototype people). Phase 3: DB implementation. */
+/** JSON-provider team repository over the in-memory store (visible rows only). */
 class JsonTeamRepository implements TeamRepository {
-  private readonly rows = PEOPLE.map((p) => ({
-    id: p.id,
-    name: p.name,
-    role: p.role,
-    subject: p.subject ?? null,
-    group: p.group,
-    category: p.category,
-    experience: p.experience,
-    photo: p.photo || null,
-    hasPhoto: Boolean(p.photo),
-  }));
-
-  private readonly byIdIndex = new Map(PEOPLE.map((p) => [p.id, p]));
-
-  async list(q: TeamQuery) {
-    let rows = [...this.rows];
+  async list(q: TeamQuery): Promise<{ items: TeamListItemDto[]; page: number; limit: number; total: number; totalPages: number }> {
+    let rows = getStore().team.filter((r) => r.isVisible).sort((a, b) => a.sortOrder - b.sortOrder);
 
     if (q.role) rows = rows.filter((r) => r.group === q.role);
 
@@ -38,11 +26,13 @@ class JsonTeamRepository implements TeamRepository {
       );
     }
 
-    return paginate(rows, q.page, q.limit);
+    const page = paginate(rows, q.page, q.limit);
+    return { ...page, items: page.items.map(toTeamListItem) };
   }
 
-  async byId(id: string) {
-    return this.byIdIndex.get(id) ?? null;
+  async byId(id: string): Promise<TeamItemDto | null> {
+    const row = getStore().team.find((r) => r.id === id && r.isVisible);
+    return row ? toTeamItem(row) : null;
   }
 }
 
