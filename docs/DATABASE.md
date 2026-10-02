@@ -15,6 +15,16 @@ Frontend komponentlar hech qachon Supabase'ga to‘g‘ridan-to‘g‘ri ulanmay
 
 ## 1. Tez o‘rnatish
 
+### 1a. Supabase dashboard orqali (2 paste — sandbox/server tarmog‘i cheklanganda eng oson yo‘l)
+
+> **Tarmoq cheklovi:** ba’zi hosting/sandbox muhitlarida `*.supabase.co`ga chiqish yopiq bo‘ladi. Bunday holda migratsiya+seedni dashboard SQL Editor orqali qo‘llang (kalitlar kerak emas), so‘ng ilova Supabase’ga yetadigan muhitda ishga tushiring.
+
+1. **Migratsiya:** Dashboard → **SQL Editor** → `supabase/APPLY-ALL.sql` kontentini paste → **Run**. Natija: 15 jadval, indekslar, RLS, `media` bucket.
+2. **Seed:** SQL Editor → `supabase/SEED.sql` kontentini paste → **Run**. Oxiridagi TEKSHIRUV so‘rovi jadval/ma’lumot sonlarini chiqaradi (kutilgan: 15 jadval, 6 yangilik, 16 jamoa, 13 galereya…).
+3. Fayllarni qayta generatsiya qilish: `npm run db:seed:sql` (src/data o‘zgarsa).
+
+### 1b. CLI/lokal yo‘l (Supabase’ga to‘g‘ridan-to‘g‘ri tarmoq bor bo‘lsa)
+
 ```bash
 # 1) Supabase loyihasi → Settings → API dan URL va service-role key oling
 cp .env.example .env.local
