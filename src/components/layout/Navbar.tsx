@@ -164,9 +164,13 @@ export function Navbar() {
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
+  /* Ommaviy sahifalarning barchasida tepada qorong'i hero bor — menyu matni oq.
+     Admin panelda esa glass "solid" parda ishlatiladi. */
+  const tone = pathname?.startsWith("/admin") ? "solid" : "over-media";
+
   return (
     <>
-      <header className={`nav-shell anim-nav ${scrolled ? "scrolled" : ""}`}>
+      <header className={`nav-shell anim-nav ${scrolled ? "scrolled" : ""}`} data-tone={tone}>
         <div className="container-x">
           <div className="flex h-[76px] items-center gap-3 lg:h-[84px]">
             {/* brand */}
@@ -177,8 +181,8 @@ export function Navbar() {
                 </span>
               </span>
               <span className="hidden flex-col leading-tight min-[430px]:flex">
-                <span className="font-display text-[1.02rem] font-extrabold tracking-tight">202-maktab</span>
-                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-faint">
+                <span className="brand-name font-display text-[1.02rem] font-extrabold tracking-tight">202-maktab</span>
+                <span className="brand-sub text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-faint">
                   Chilonzor • Toshkent
                 </span>
               </span>
@@ -206,7 +210,7 @@ export function Navbar() {
               <button
                 ref={toggleRef}
                 type="button"
-                className="icon-btn lg:hidden"
+                className="icon-btn nav-burger lg:hidden"
                 aria-expanded={menuOpen}
                 aria-controls="mobile-sheet"
                 aria-label={menuOpen ? "Menyuni yopish" : "Menyuni ochish"}

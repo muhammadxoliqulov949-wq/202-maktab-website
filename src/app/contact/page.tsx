@@ -93,7 +93,7 @@ export default function ContactPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="section-pad bg-[color:var(--bg-2)] scroll-mt-24" aria-label="Savol-javoblar">
+      <section id="faq" className="band section-pad scroll-mt-24" aria-label="Savol-javoblar">
         <div className="container-x grid gap-10 lg:grid-cols-[0.7fr_1fr] lg:gap-16">
           <div>
             <Reveal variant="fade">

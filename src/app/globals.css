@@ -35,30 +35,46 @@
 :root {
   color-scheme: light;
 
-  --bg: #f0ede6;
-  --bg-2: #e9e5db;
-  --surface: #f4f1ea;
-  --surface-2: #fbf9f4;
-  --ink: #182740;
-  --muted: #54637c;
-  --faint: #7c8899;
-  --primary: #182740;
-  --primary-soft: #233451;
-  --primary-contrast: #f4f6fa;
-  --on-primary-muted: #b9c4d6;
-  --accent: #0e7a5a;
-  --accent-ink: #0a5c44;
-  --accent-soft: rgba(14, 122, 90, 0.12);
-  --line: #ddd7c9;
-  --line-strong: #c9c2b1;
-  --success: #0e7a5a;
+  /* Kunduzgi palitra: iliq bej o'rniga sovuq, toza oq-ko'k (deep navy hero va
+     emerald aksent bilan mos keladi) — fon rasmlari bilan uyg'unlashadi. */
+  --bg: #eef1f6;
+  --bg-2: #e5eaf2;
+  --surface: #f7f9fc;
+  --surface-2: #ffffff;
+  --ink: #14213c;
+  --muted: #4d5c77;
+  --faint: #6f7d96;
+  --primary: #16243f;
+  --primary-soft: #24385c;
+  --primary-contrast: #f6f8fc;
+  --on-primary-muted: #bcc8dd;
+  --accent: #0d7d5c;
+  --accent-ink: #0a5a43;
+  --accent-soft: rgba(13, 125, 92, 0.12);
+  --line: #d4dbe7;
+  --line-strong: #b8c2d3;
+  --success: #0d7d5c;
   --error: #b3261e;
   --warn: #94660f;
 
-  --neu-d: rgba(24, 39, 64, 0.11);
-  --neu-d2: rgba(24, 39, 64, 0.07);
-  --neu-l: rgba(255, 255, 255, 0.9);
-  --neu-l2: rgba(255, 255, 255, 0.55);
+  --neu-d: rgba(20, 33, 60, 0.1);
+  --neu-d2: rgba(20, 33, 60, 0.06);
+  --neu-l: rgba(255, 255, 255, 0.95);
+  --neu-l2: rgba(255, 255, 255, 0.6);
+
+  /* iOS-glass tokenlari (kunduzgi) */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.72);
+  --glass-ring: inset 0 0 0 1px var(--glass-border);
+  --glass-shadow: 0 16px 36px rgba(16, 28, 54, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  --glass-shadow-sm: 0 8px 20px rgba(16, 28, 54, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-blur: 18px;
+
+  /* Scroll bilan almashadigan fon (ambient) */
+  --ambient-strength: 0.46;
+  --ambient-veil-top: 26%;
+  --ambient-veil-bottom: 60%;
 
   --shadow-raised: 10px 10px 26px var(--neu-d), -8px -8px 20px var(--neu-l), inset 0 1px 0 var(--neu-l2);
   --shadow-raised-sm: 5px 5px 14px var(--neu-d), -4px -4px 10px var(--neu-l);
@@ -117,6 +133,19 @@
   --success: #3cba92;
   --error: #e5645c;
   --warn: #d9a44a;
+
+  /* iOS-glass tokenlari (tungi) */
+  --glass-bg: rgba(21, 33, 56, 0.62);
+  --glass-bg-strong: rgba(26, 40, 66, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-ring: inset 0 0 0 1px var(--glass-border);
+  --glass-shadow: 0 18px 40px rgba(3, 8, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --glass-shadow-sm: 0 10px 24px rgba(3, 8, 18, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --glass-blur: 18px;
+
+  --ambient-strength: 0.34;
+  --ambient-veil-top: 42%;
+  --ambient-veil-bottom: 72%;
 
   --neu-d: rgba(3, 8, 18, 0.55);
   --neu-d2: rgba(3, 8, 18, 0.38);
@@ -588,20 +617,20 @@ select.field {
 .icon-btn:active { box-shadow: var(--shadow-inset-sm); transform: scale(0.97); }
 
 /* --- transparent navbar over dark heroes: light-on-dark legibility --- */
-.nav-shell:not(.scrolled) .brand-name { color: #fff; }
-.nav-shell:not(.scrolled) .brand-sub { color: rgba(255, 255, 255, 0.62); }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .brand-name { color: #fff; }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .brand-sub { color: rgba(255, 255, 255, 0.62); }
 
-.nav-shell:not(.scrolled) .nav-link { color: rgba(255, 255, 255, 0.82); }
-.nav-shell:not(.scrolled) .nav-link:hover {
+.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-link { color: rgba(255, 255, 255, 0.82); }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-link:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.12);
 }
-.nav-shell:not(.scrolled) .nav-link[aria-current="page"] { color: #fff; }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-link[aria-current="page"] { color: #fff; }
 
-.nav-shell:not(.scrolled) .locale-btn { color: rgba(255, 255, 255, 0.85); }
-.nav-shell:not(.scrolled) .locale-btn:hover { color: #fff; }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .locale-btn { color: rgba(255, 255, 255, 0.85); }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .locale-btn:hover { color: #fff; }
 
-.nav-shell:not(.scrolled) .icon-btn {
+.nav-shell[data-tone="over-media"]:not(.scrolled) .icon-btn {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   box-shadow: none;
@@ -609,14 +638,14 @@ select.field {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
-.nav-shell:not(.scrolled) .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
 
-.nav-shell:not(.scrolled) .nav-cta-mini {
+.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-cta-mini {
   background: linear-gradient(145deg, #12896a, var(--accent));
   color: #ffffff;
   box-shadow: 7px 7px 16px rgba(4, 24, 17, 0.35), -4px -4px 12px rgba(255, 255, 255, 0.06);
 }
-.nav-shell:not(.scrolled) .nav-cta-mini:hover { box-shadow: 10px 14px 26px rgba(4, 24, 17, 0.4); }
+.nav-shell[data-tone="over-media"]:not(.scrolled) .nav-cta-mini:hover { box-shadow: 10px 14px 26px rgba(4, 24, 17, 0.4); }
 
 /* dropdown */
 .dropdown-panel {
@@ -1417,3 +1446,277 @@ select.field {
 
 /* inshootlar — scroll bilan boshqariladigan bosqichlar (barqaror balandlik) */
 .fac-step { min-height: 150px; }
+
+/* ============================================================================
+   DESIGN PASS — iOS GLASS + AMBIENT BACKGROUND + LIGHT-MODE FIXES
+   ----------------------------------------------------------------------------
+   * Ambient: fixed, scroll bilan almashadigan xiralashtirilgan maktab media
+     qatlami (JS: components/layout/AmbientBackdrop.tsx).
+   * Glass: navigatsiya, tugmalar, chiplar, kartalar — iOS "frosted" uslubi.
+   * Kunduzgi rejim: sovuq oq-ko'k palitra + o'qish uchun kontrastli matnlar.
+   * MUHIM (layer): bu fayldagi qoidalar Tailwind `@layer utilities` dan
+     tashqarida — shu tufayli `lg:hidden` kabi utilitalar bilan to'qnashuvda
+     oldin yuz bergan xato (hamburger desktopda ko'rinib qolishi) qaytmaydi.
+   ============================================================================ */
+
+/* ---------- 1) Ambient fon qatlami ---------- */
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-media {
+  position: absolute;
+  inset: -3%;
+  opacity: 0;
+  transform: scale(1.08);
+  transition: opacity 1.5s var(--ease), transform 2.2s var(--ease-out);
+  will-change: opacity, transform;
+}
+
+.ambient-media.is-on {
+  opacity: var(--ambient-strength);
+  transform: scale(1);
+}
+
+.ambient-media img,
+.ambient-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* xiralashtiruvchi parda — fon rasmini "hiralashgan" ko'rinishga keltiradi */
+.ambient-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(130% 80% at 50% 0%, transparent 0%, color-mix(in srgb, var(--bg) 58%, transparent) 58%, var(--bg) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) var(--ambient-veil-top), transparent), color-mix(in srgb, var(--bg) var(--ambient-veil-bottom), transparent));
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.15);
+}
+
+.ambient-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.32;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='an'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23an)' opacity='0.26'/%3E%3C/svg%3E");
+}
+
+/* ---------- 2) iOS glass yuzalar ---------- */
+
+.n,
+.glass,
+.icon-btn,
+.chip,
+.fpill,
+.faq-item,
+.btn-ghost,
+.dropdown-panel,
+.toast,
+.story-rail .lbl,
+.mediacard-chip {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.55);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.55);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass,
+.icon-btn,
+.chip,
+.fpill,
+.btn-ghost,
+.dropdown-panel,
+.toast,
+.story-rail .lbl,
+.mediacard-chip {
+  box-shadow: var(--glass-shadow-sm);
+}
+
+.n { border-color: var(--glass-border); }
+
+.qlink,
+.map-shell,
+.tile-arrow,
+.person-photo {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+/* tugmalar — shaffof, lekin brend rangi va kontrast saqlanadi */
+.btn {
+  -webkit-backdrop-filter: blur(14px) saturate(1.45);
+  backdrop-filter: blur(14px) saturate(1.45);
+}
+
+.btn-primary {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--primary-soft) 84%, transparent), color-mix(in srgb, var(--primary) 90%, transparent));
+  box-shadow: var(--glass-shadow), var(--glass-ring);
+}
+
+.btn-accent {
+  background: linear-gradient(150deg, color-mix(in srgb, #12896a 88%, transparent), color-mix(in srgb, var(--accent) 92%, transparent));
+  box-shadow: 0 14px 30px rgba(9, 64, 46, 0.26), inset 0 0 0 1px rgba(255, 255, 255, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-ghost { color: var(--ink); box-shadow: var(--glass-shadow-sm), var(--glass-ring); }
+
+.icon-btn { box-shadow: var(--glass-shadow-sm), var(--glass-ring); }
+
+.chip,
+.fpill { box-shadow: var(--glass-shadow-sm), var(--glass-ring); }
+
+.faq-item summary .faq-x,
+.tile-ico,
+.qlink-ico { background: color-mix(in srgb, var(--bg-2) 70%, transparent); }
+
+/* ma'lumot uchun "band" bo'limlar — fon rasmi ko'rinib turadi (xiralashgan) */
+.band {
+  background: var(--bg-2);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-2) 72%, transparent),
+    color-mix(in srgb, var(--bg) 68%, transparent)
+  );
+  border-block: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+}
+
+/* iOS "Reduce Transparency" — shaffoflikni o'chirish */
+@media (prefers-reduced-transparency: reduce) {
+  .ambient { opacity: 0.35; }
+  .ambient-veil { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 82%, transparent); }
+  .n, .glass, .icon-btn, .chip, .fpill, .faq-item, .btn-ghost, .dropdown-panel,
+  .toast, .story-rail .lbl, .mediacard-chip, .qlink, .map-shell, .band, .btn {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--surface);
+  }
+}
+
+/* ---------- 3) Navigatsiya: glass + desktop hamburger tuzatishi ---------- */
+
+/* Fon rasmli (qorong'i) hero ustida — matn oq bo'lib qoladi */
+.nav-shell:not(.scrolled) { background: transparent; }
+
+/* Fon rasmi bo'lmagan holat: yengil glass parda (matn o'qiladi) */
+.nav-shell:not(.scrolled)[data-tone="solid"] {
+  background: color-mix(in srgb, var(--bg) 34%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
+.nav-shell.scrolled {
+  background: color-mix(in srgb, var(--bg) 68%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.65);
+  backdrop-filter: blur(22px) saturate(1.65);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 75%, transparent), 0 18px 40px rgba(11, 21, 42, 0.12);
+}
+
+/* Desktop (≥1024px) va planshet-landshaft: menyu tugmasi faqat telefon/planshet uchun.
+   Tailwind `lg:hidden` @layer utilities ichida, shuning uchun unlayered qoida bilan
+   kafolatlaymiz. */
+@media (min-width: 1024px) {
+  .nav-shell .nav-burger { display: none; }
+}
+
+/* "Bog'lanish" mini-CTA telefonda yashiriladi (mobil varaqda alohida CTA bor) */
+@media (max-width: 767.98px) {
+  .nav-shell .nav-cta-mini { display: none; }
+}
+
+/* ---------- 4) Kunduzgi rejim: matn va sirt uyg'unligi ---------- */
+
+:root {
+  --shadow-raised: 0 16px 36px rgba(16, 28, 54, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  --shadow-raised-sm: 0 8px 20px rgba(16, 28, 54, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  --shadow-hover: 0 22px 46px rgba(16, 28, 54, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  --shadow-flat: 0 6px 16px rgba(16, 28, 54, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --shadow-btn-dark: 0 14px 28px rgba(11, 25, 48, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --shadow-btn-dark-hover: 0 18px 34px rgba(11, 25, 48, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] {
+  --shadow-raised: 0 18px 40px rgba(3, 8, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-raised-sm: 0 10px 24px rgba(3, 8, 18, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-hover: 0 24px 52px rgba(3, 8, 18, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-flat: 0 8px 18px rgba(3, 8, 18, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Kunduzgi rejimda chegara/sirt ranglari sovuq palitraga mos */
+.n-inset,
+.field,
+.tile-ico,
+.qlink-ico,
+.faq-item summary .faq-x,
+.person-photo,
+.fac-bar { border-color: transparent; }
+
+/* Xarita (OSM) kunduzgi rejimda iliq sariqdan sovuq neytralga */
+.map-shell iframe { filter: saturate(0.92) contrast(1.02); }
+[data-theme="dark"] .map-shell iframe { filter: invert(0.9) hue-rotate(185deg) saturate(0.55) brightness(0.92); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-media { transition: none; transform: none; }
+}
+
+/* ---------- 5) Brend gradient panellari (glass) ---------- */
+
+.glass-panel-primary {
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--primary-soft) 80%, transparent),
+    color-mix(in srgb, var(--primary) 88%, transparent)
+  );
+  color: var(--primary-contrast);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px color-mix(in srgb, var(--primary-contrast) 18%, transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel-primary { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--primary); }
+}
+
+/* Brend panellari ichidagi yordamchi elementlar (glass fonda o'qiladi) */
+.glass-panel-primary .tile-arrow,
+.glass-panel-primary .icon-btn {
+  background: color-mix(in srgb, var(--primary-contrast) 14%, transparent);
+  color: var(--primary-contrast);
+  box-shadow: none;
+}
+
+.glass-panel-primary .text-white { color: var(--primary-contrast); }
+
+/* Telefonlarda karta soni ko'p — backdrop-filter og'irlik qiladi:
+   shaffoflik saqlanadi, xiralashtirish esa faqat navigatsiya/elementlarda qoladi. */
+@media (max-width: 767.98px) {
+  .n,
+  .qlink,
+  .faq-item,
+  .map-shell,
+  .person-photo,
+  .tile-arrow {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--glass-bg-strong);
+  }
+}
+
+/* Forma maydonlari ham shaffof "glass" — matn kontrasti saqlanadi */
+.field {
+  background: color-mix(in srgb, var(--surface-2) 76%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 72%, transparent), var(--shadow-inset-sm);
+  border-color: transparent;
+}

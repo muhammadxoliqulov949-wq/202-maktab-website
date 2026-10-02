@@ -65,7 +65,7 @@ export default function EducationPage() {
       </section>
 
       {/* stages */}
-      <section id="stages" className="section-pad bg-[color:var(--bg-2)]" aria-label="Ta'lim bosqichlari">
+      <section id="stages" className="band section-pad" aria-label="Ta'lim bosqichlari">
         <div className="container-x">
           <SectionHeader
             index="01"
@@ -136,7 +136,7 @@ export default function EducationPage() {
       </section>
 
       {/* methodology */}
-      <section className="section-pad bg-[color:var(--bg-2)]" aria-label="Metodika">
+      <section className="band section-pad" aria-label="Metodika">
         <div className="container-x">
           <SectionHeader
             index="03"

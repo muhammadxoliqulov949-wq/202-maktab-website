@@ -111,7 +111,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         </div>
 
         {/* related */}
-        <section className="section-pad-tight bg-[color:var(--bg-2)]" aria-label="O'xshash maqolalar">
+        <section className="band section-pad-tight" aria-label="O'xshash maqolalar">
           <div className="container-x">
             <Reveal variant="fade">
               <h2 className="h3 mb-8">O‘xshash maqolalar</h2>

@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { BackToTop } from "@/components/layout/BackToTop";
+import { AmbientBackdrop } from "@/components/layout/AmbientBackdrop";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://202-maktab.uz"),
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f0ede6" },
+    { media: "(prefers-color-scheme: light)", color: "#eef1f6" },
     { media: "(prefers-color-scheme: dark)", color: "#101a2c" },
   ],
   width: "device-width",
@@ -72,6 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Asosiy kontentga o‘tish
         </a>
         <ScrollProgress />
+        <AmbientBackdrop />
         <Navbar />
         <main id="main">{children}</main>
         <Footer />

@@ -7,7 +7,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-[color:var(--bg-2)]">
+    <footer className="band relative overflow-hidden">
       {/* soft architectural top edge */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color:var(--line-strong)] to-transparent" />
 

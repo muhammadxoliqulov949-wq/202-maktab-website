@@ -10,7 +10,7 @@ export function NewsSection() {
   const [featured, ...rest] = NEWS.slice(0, 4);
 
   return (
-    <section className="section-pad bg-[color:var(--bg-2)]" aria-label="Yangiliklar va tadbirlar">
+    <section className="band section-pad" aria-label="Yangiliklar va tadbirlar">
       <div className="container-x">
         <SectionHeader
           index="08"
