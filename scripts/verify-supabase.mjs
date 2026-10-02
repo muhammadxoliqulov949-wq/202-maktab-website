@@ -137,7 +137,18 @@ try {
   // Muhim: /api/v1/team sahifalanadi (limit 1–50, default 12). Shu sababli
   // to'liq ro'yxat faqat `limit=50` bilan olinadi; aks holda 1-sahifa (12 ta)
   // qaytadi va 16 a'zoning oxirgi 4 tasi (p-13…p-16) tekshiruvdan chetda qoladi.
+  // TEMP DIAGNOSTIKA (annotation orqali o'qiladi; keyin olib tashlanadi)
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/team_members?select=id,full_name,is_visible,sort_order,member_group&order=sort_order`, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+    });
+    const rows = await r.json();
+    console.log(`::notice::DB team_members (${rows.length}): ${rows.map((x) => `${x.id}/${x.is_visible ? "V" : "H"}/${x.sort_order}/${x.member_group}`).join(" ")}`);
+  } catch (e) {
+    console.log(`::notice::DB team debug failed: ${e.message}`);
+  }
   const team = await pub("/api/v1/team?limit=50");
+  console.log(`::notice::API team: status=${team.status} len=${team.body?.data?.length} total=${team.body?.meta?.total} limit=${team.body?.meta?.limit} ids=${(team.body?.data ?? []).map((m) => m.id).join(",")}`);
   const teamIds = new Set((team.body?.data ?? []).map((m) => m.id));
   const missingTeam = ["p-13", "p-14", "p-15", "p-16"].filter((id) => !teamIds.has(id));
   check(
@@ -251,7 +262,11 @@ const failed = results.filter((r) => !r.ok);
 console.log(`\n═══════ NATIJA: ${results.length - failed.length}/${results.length} tekshiruv o'tdi ═══════`);
 if (failed.length) {
   console.log("O'tmaganlar:");
-  for (const f of failed) console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+  for (const f of failed) {
+    console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+    // TEMP DIAGNOSTIKA: annotation (log yuklab bo'lmaydigan muhitlarda ham API orqali ko'rinadi)
+    console.log(`::error::FAIL: ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+  }
   exitCode = 1;
 }
 process.exit(exitCode);
