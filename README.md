@@ -1,4 +1,10 @@
-# 202-maktab — rasmiy sayt (Phase 1: Frontend)
+# 202-maktab — rasmiy sayt
+
+**Holat:** Phase 3 (Database + Admin CMS) ✅ · Phase 2 (API backend) ✅ · Phase 1 (Frontend) ✅
+
+Phase 3 qisqacha: Supabase PostgreSQL (15 jadval, migratsiyalar), json|supabase provider switch, /admin CMS (yangiliklar, jamoa, galereya, FAQ, inshootlar, statistika, sozlamalar, murojaatlar inbox, audit), admin API (/api/v1/admin/*), audit jurnali, seed skript. Batafsil: **docs/DATABASE.md** va **PHASE-3-HISOBOT.md**.
+
+> ⚠️ /admin — DEVELOPMENT ONLY (Phase 3). Real autentifikatsiya Phase 4'da. Barcha kontent hozircha PROTOTIP.
 
 **202-sonli umumiy o‘rta ta’lim maktabi** — Chilonzor tumani, Toshkent shahri.
 
@@ -65,3 +71,20 @@ public/
 - **Til tanlagichi:** UZ faol; RU versiya «tez orada» holatda (halol prototip).
 - **Mavzu (rejim):** yorug‘/tungi — OS sozlamasiga mos + qo‘lda almashtirish, FOUC-siz.
 - **Reduced motion:** `prefers-reduced-motion` bo‘yicha barcha animatsiyalar o‘chiriladi.
+
+## Phase 3 — Database va Admin CMS (qisqacha)
+
+### Supabase ulanish
+```bash
+cp .env.example .env.local
+# DATA_PROVIDER=supabase, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY to'ldiring
+npm run db:migrate   # migratsiya fayllari ro'yxati (SQL editor yoki supabase CLI)
+npm run db:seed      # src/data prototip kontentini bazaga ko'chirish (idempotent)
+```
+
+### Admin panel
+`/admin` — DEVELOPMENT ONLY. Serverda `ADMIN_DEV_TOKEN` sozlang, brauzerda bir marta kiriting.
+Endpointlar: `/api/v1/admin/{dashboard,news,team,gallery,faqs,facilities,features,statistics,settings,contact-info,quick-links,contact-submissions,audit-log,media}`.
+
+### Provider switch
+`DATA_PROVIDER=json` (default, dev) yoki `supabase` (production). Farqi faqat `.env`da — kod bir xil.

@@ -8,9 +8,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test tests/api.test.mjs",
-    "test:full": "next build && node --test tests/api.test.mjs",
-    "load:test": "node scripts/load-test.mjs"
+    "test": "node --test tests/api.test.mjs tests/admin.test.mjs",
+    "test:full": "next build && node --test tests/api.test.mjs tests/admin.test.mjs",
+    "load:test": "node scripts/load-test.mjs",
+    "db:migrate": "echo 'SQL migratsiyalarni qollang: supabase/migrations/*.sql (SQL editor yoki supabase CLI)' && ls supabase/migrations/",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed:dry": "tsx scripts/seed.ts --dry-run"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
