@@ -72,9 +72,9 @@
   --glass-blur: 18px;
 
   /* Scroll bilan almashadigan fon (ambient) */
-  --ambient-strength: 0.46;
+  --ambient-strength: 0.4;
   --ambient-veil-top: 26%;
-  --ambient-veil-bottom: 60%;
+  --ambient-veil-bottom: 64%;
 
   --shadow-raised: 10px 10px 26px var(--neu-d), -8px -8px 20px var(--neu-l), inset 0 1px 0 var(--neu-l2);
   --shadow-raised-sm: 5px 5px 14px var(--neu-d), -4px -4px 10px var(--neu-l);
@@ -143,9 +143,9 @@
   --glass-shadow-sm: 0 10px 24px rgba(3, 8, 18, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --glass-blur: 18px;
 
-  --ambient-strength: 0.34;
+  --ambient-strength: 0.3;
   --ambient-veil-top: 42%;
-  --ambient-veil-bottom: 72%;
+  --ambient-veil-bottom: 74%;
 
   --neu-d: rgba(3, 8, 18, 0.55);
   --neu-d2: rgba(3, 8, 18, 0.38);
