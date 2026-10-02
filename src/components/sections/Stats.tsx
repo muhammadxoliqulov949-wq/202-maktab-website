@@ -8,7 +8,7 @@ export function Stats() {
   return (
     <section className="relative" aria-label="Maktab raqamlarda">
       <div className="container-x">
-        <div className="n overflow-hidden">
+        <div className="n overflow-hidden" data-parallax="0.06">
           {/* top row */}
           <div className="grid gap-10 border-b border-line px-7 py-12 sm:grid-cols-2 sm:px-10 lg:grid-cols-4 lg:gap-6 lg:py-14">
             {STATS.map((s, i) => (

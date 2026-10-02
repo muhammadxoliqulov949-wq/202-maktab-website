@@ -23,7 +23,7 @@ export default function ContactPage() {
       />
 
       {/* contact cards */}
-      <section className="section-pad-tight" aria-label="Aloqa ma'lumotlari">
+      <section data-ambient="/images/edu-events.jpg" className="section-pad-tight" aria-label="Aloqa ma'lumotlari">
         <div className="container-x">
           <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
@@ -54,13 +54,13 @@ export default function ContactPage() {
       </section>
 
       {/* form + map */}
-      <section className="section-pad-tight" aria-label="Murojaat formasi va xarita">
+      <section data-ambient="/images/life-muhit.jpg" className="section-pad-tight" aria-label="Murojaat formasi va xarita">
         <div className="container-x grid gap-8 lg:grid-cols-2">
           <div id="form" className="scroll-mt-28">
             <Reveal variant="fade">
               <p className="eyebrow mb-4">Murojaat yuborish</p>
             </Reveal>
-            <Reveal>
+            <Reveal variant="flip">
               <ContactForm />
             </Reveal>
           </div>

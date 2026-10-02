@@ -23,7 +23,7 @@ export function SectionHeader({
   if (align === "left") {
     return (
       <div className="sec-head">
-        <Reveal variant="fade">
+        <Reveal variant="tilt-l">
           <p className="eyebrow">
             <span className="sec-index mr-1">{index}</span>
             {eyebrow}

@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { BackToTop } from "@/components/layout/BackToTop";
 import { AmbientBackdrop } from "@/components/layout/AmbientBackdrop";
+import { Motion3D } from "@/components/motion/Motion3D";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://202-maktab.uz"),
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </a>
         <ScrollProgress />
         <AmbientBackdrop />
+        <Motion3D />
         <Navbar />
         <main id="main">{children}</main>
         <Footer />

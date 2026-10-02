@@ -18,7 +18,7 @@ export default function GalleryPage() {
         crumbs={[{ label: "Galereya" }]}
         image="/images/life-ijod.jpg"
       />
-      <section className="section-pad" aria-label="Galereya media">
+      <section data-ambient="/images/edu-events.jpg" className="section-pad" aria-label="Galereya media">
         <div className="container-x">
           <GalleryExplorer />
         </div>

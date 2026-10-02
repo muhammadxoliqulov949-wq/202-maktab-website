@@ -30,6 +30,7 @@ export function EducationGrid() {
             const featured = f.image && i === 1; // asymmetric: the "classrooms" tile becomes media tile
             return (
               <Reveal
+                variant="flip"
                 key={f.id}
                 delay={(i % 3) * 80}
                 className={featured ? "sm:col-span-2 lg:col-span-1 lg:row-span-2" : ""}

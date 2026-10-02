@@ -2,105 +2,107 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { SmartVideo } from "@/components/media/SmartVideo";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * AmbientBackdrop — sahifa orqasidagi "jonli" fon.
+ * AmbientBackdrop — sahifa orqasidagi "jonli" maktab foni.
  *
- * * Bitta tekis rang emas: maktab hayotidan olingan xiralashtirilgan
- *   rasm/video qatlamlari navbat bilan ko'rinadi (cross-fade).
- * * Slayd sahifa scroll qilinishiga qarab almashadi (har ~0.72 ekran).
- * * Telefonda ham yengil: video faqat kerak bo'lganda (SmartVideo orqali)
- *   yuklanadi; `prefers-reduced-motion` bo'lsa — bitta statik rasm.
- * * `pointer-events: none`, `aria-hidden` — kontent va a11y'ga ta'sir qilmaydi;
- *   admin panelda butunlay o'chiriladi.
+ * Har bir bo'lim o'z rasmini e'lon qiladi: `<section data-ambient="/images/x.jpg">`.
+ * Foydalanuvchi scroll qilganda ekran markazidagi bo'lim aniqlanadi va fon
+ * o'sha bo'lim rasmiga **animatsiya bilan** (cross-fade + kichik zoom) o'tadi.
+ * Bo'limlar orasida esa yumshoq blur parda matn o'qilishini kafolatlaydi.
+ *
+ * * `data-ambient` bo'lmasa — HERO rasmi ishlatiladi.
+ * * Telefon/planshet, `prefers-reduced-motion`, Save-Data: statik (animatsiyasiz)
+ *   bitta rasm; admin panelda fon umuman ko'rsatilmaydi.
  */
 
-type Slide =
-  | { kind: "image"; src: string; alt: string }
-  | { kind: "video"; src: string; poster: string; label: string };
+const FALLBACK_SRC = "/images/hero.jpg";
+const MAX_LAYERS = 2;
 
-const SLIDES: Slide[] = [
-  { kind: "image", src: "/images/intro.jpg", alt: "" },
-  { kind: "image", src: "/images/edu-quality.jpg", alt: "" },
-  { kind: "video", src: "/video/campus.mp4", poster: "/images/hero.jpg", label: "Maktab binosi va hovlisi" },
-  { kind: "image", src: "/images/edu-library.jpg", alt: "" },
-  { kind: "image", src: "/images/life-sport.jpg", alt: "" },
-  { kind: "image", src: "/images/edu-events.jpg", alt: "" },
-  { kind: "image", src: "/images/life-muhit.jpg", alt: "" },
-];
-
-/** Har bir slayd uchun scroll oralig'i (ekran balandligiga nisbatan). */
-const STEP_RATIO = 0.72;
+type Layer = { id: number; src: string };
 
 export function AmbientBackdrop() {
   const pathname = usePathname();
-  const [index, setIndex] = useState(0);
+  const layerId = useRef(0);
+  const [layers, setLayers] = useState<Layer[]>([{ id: -1, src: FALLBACK_SRC }]);
   const [animated, setAnimated] = useState(true);
-  const rafId = useRef(0);
 
+  const push = useCallback((src: string) => {
+    setLayers((prev) => {
+      if (prev[prev.length - 1]?.src === src) return prev;
+      const next = [...prev, { id: layerId.current++, src }];
+      return next.slice(-MAX_LAYERS);
+    });
+  }, []);
+
+  /* --- sozlamalar (bir marta) --- */
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setAnimated(false);
-      return;
-    }
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setAnimated(!reduced);
+  }, []);
 
-    let ticking = false;
-    const compute = () => {
-      const step = Math.max(360, window.innerHeight * STEP_RATIO);
-      setIndex(Math.abs(Math.floor(window.scrollY / step)) % SLIDES.length);
-      ticking = false;
+  /* --- bo'lim rasmlarini kuzatish --- */
+  useEffect(() => {
+    if (pathname?.startsWith("/admin")) return;
+
+    let raf = 0;
+    const pick = () => {
+      const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-ambient]"));
+      if (!sections.length) {
+        push(FALLBACK_SRC);
+        return;
+      }
+      const probe = window.innerHeight * 0.42; // ekranning yuqori-uchdan bir qismi
+      let best: HTMLElement | null = null;
+      for (const el of sections) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= probe && rect.bottom >= probe) {
+          best = best ? (rect.top > best.getBoundingClientRect().top ? el : best) : el;
+        }
+      }
+      const src = best?.dataset.ambient || sections[0]?.dataset.ambient || FALLBACK_SRC;
+      push(src);
     };
     const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      rafId.current = requestAnimationFrame(compute);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(pick);
     };
 
-    compute();
+    pick();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     return () => {
-      cancelAnimationFrame(rafId.current);
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [pathname, push]);
 
-  /* admin panel — ish quroli; fon rasmi kerak emas (va tezlikni tejaydi) */
   if (pathname?.startsWith("/admin")) return null;
-
-  const active = animated ? index : 0;
-  /* video kadr almashinuvida uzilib qolmasin: qo'shni slaydlarda ham tayyor turadi */
-  const isNear = (i: number) => {
-    const d = Math.abs(i - active);
-    return d <= 1 || d === SLIDES.length - 1;
-  };
 
   return (
     <div className="ambient" aria-hidden="true">
-      {SLIDES.map((slide, i) =>
-        slide.kind === "image" ? (
-          <div key={slide.src} className={`ambient-media${i === active ? " is-on" : ""}`}>
-            <Image
-              src={slide.src}
-              alt={slide.alt}
-              fill
-              sizes="100vw"
-              quality={55}
-              priority={i === 0}
-              aria-hidden="true"
-              className="object-cover"
-            />
-          </div>
-        ) : (
-          <div key={slide.src} className={`ambient-media${i === active ? " is-on" : ""}`}>
-            {/* video aktiv slayd atrofida yuklanadi — trafik va CPU tejaladi */}
-            {isNear(i) ? <SmartVideo src={slide.src} poster={slide.poster} className="h-full w-full" label={slide.label} /> : null}
-          </div>
-        )
-      )}
+      {layers.map((layer, i) => {
+        const isNewest = i === layers.length - 1;
+        const cls = ["ambient-media", "is-on", isNewest ? "is-entering" : "is-rest", !animated ? "is-static" : ""]
+          .filter(Boolean)
+          .join(" ");
+        return (
+        <div key={layer.id} className={cls}>
+          <Image
+            src={layer.src}
+            alt=""
+            fill
+            sizes="100vw"
+            quality={52}
+            priority={i === 0}
+            aria-hidden="true"
+            className="object-cover"
+          />
+        </div>
+        );
+      })}
       <div className="ambient-veil" />
       <div className="ambient-grain" />
     </div>

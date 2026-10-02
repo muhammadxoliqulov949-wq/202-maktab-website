@@ -22,7 +22,7 @@ export default function TeamPage() {
         image="/images/edu-quality.jpg"
       />
 
-      <section className="section-pad" aria-label="Jamoa a'zolari">
+      <section data-ambient="/images/edu-inclusive.jpg" className="section-pad" aria-label="Jamoa a'zolari">
         <div className="container-x">
           <Reveal>
             <div className="mb-10 flex flex-wrap items-center gap-4">

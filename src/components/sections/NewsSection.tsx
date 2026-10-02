@@ -28,7 +28,7 @@ export function NewsSection() {
           <Reveal variant="scale">
             <Link
               href={`/news/${featured.slug}`}
-              className="mediacard group block h-full min-h-[420px]"
+              className="mediacard group block h-full min-h-[420px]" data-tilt data-tilt-strength="5"
               aria-label={featured.title}
             >
               <Image

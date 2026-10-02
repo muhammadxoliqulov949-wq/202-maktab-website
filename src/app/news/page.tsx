@@ -19,7 +19,7 @@ export default function NewsPage() {
         crumbs={[{ label: "Yangiliklar" }]}
         image="/images/news-open-door.jpg"
       />
-      <section className="section-pad" aria-label="Yangiliklar ro'yxati">
+      <section data-ambient="/images/news-stem.jpg" className="section-pad" aria-label="Yangiliklar ro'yxati">
         <div className="container-x">
           <NewsExplorer />
         </div>

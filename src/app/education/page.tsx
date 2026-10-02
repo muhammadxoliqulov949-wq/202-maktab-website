@@ -26,7 +26,7 @@ export default function EducationPage() {
       />
 
       {/* overview */}
-      <section className="section-pad" aria-label="Ta'lim haqida qisqacha">
+      <section data-ambient="/images/edu-classroom.jpg" className="section-pad" aria-label="Ta'lim haqida qisqacha">
         <div className="container-x grid items-center gap-12 lg:grid-cols-[1fr_0.85fr] lg:gap-20">
           <div>
             <Reveal variant="fade">
@@ -65,7 +65,7 @@ export default function EducationPage() {
       </section>
 
       {/* stages */}
-      <section id="stages" className="band section-pad" aria-label="Ta'lim bosqichlari">
+      <section id="stages" data-ambient="/images/edu-quality.jpg" className="band section-pad" aria-label="Ta'lim bosqichlari">
         <div className="container-x">
           <SectionHeader
             index="01"
@@ -103,7 +103,7 @@ export default function EducationPage() {
       </section>
 
       {/* subjects */}
-      <section className="section-pad" aria-label="Fanlar">
+      <section data-ambient="/images/news-stem.jpg" className="section-pad" aria-label="Fanlar">
         <div className="container-x">
           <SectionHeader
             index="02"
@@ -136,7 +136,7 @@ export default function EducationPage() {
       </section>
 
       {/* methodology */}
-      <section className="band section-pad" aria-label="Metodika">
+      <section data-ambient="/images/edu-library.jpg" className="band section-pad" aria-label="Metodika">
         <div className="container-x">
           <SectionHeader
             index="03"
@@ -164,7 +164,7 @@ export default function EducationPage() {
       </section>
 
       {/* activities */}
-      <section id="activities" className="section-pad" aria-label="To'garaklar va tadbirlar">
+      <section id="activities" data-ambient="/images/life-ijod.jpg" className="section-pad" aria-label="To'garaklar va tadbirlar">
         <div className="container-x">
           <SectionHeader
             index="04"

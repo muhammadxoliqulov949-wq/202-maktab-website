@@ -28,7 +28,7 @@ export default function AboutPage() {
       />
 
       {/* story — editorial split */}
-      <section className="section-pad" aria-label="Maktab hikoyasi">
+      <section data-ambient="/images/intro.jpg" className="section-pad" aria-label="Maktab hikoyasi">
         <div className="container-x grid gap-12 lg:grid-cols-2 lg:gap-20">
           <div>
             <Reveal variant="fade">
@@ -86,7 +86,7 @@ export default function AboutPage() {
       </section>
 
       {/* mission */}
-      <section className="section-pad-tight" aria-label="Missiya">
+      <section data-ambient="/images/edu-quality.jpg" className="section-pad-tight" aria-label="Missiya">
         <div className="container-x">
           <Reveal>
             <div className="n relative overflow-hidden p-8 sm:p-14">
@@ -108,7 +108,7 @@ export default function AboutPage() {
       </section>
 
       {/* values */}
-      <section className="section-pad-tight" aria-label="Qadriyatlar">
+      <section data-ambient="/images/edu-library.jpg" className="section-pad-tight" aria-label="Qadriyatlar">
         <div className="container-x">
           <SectionHeader
             index="01"
@@ -136,7 +136,7 @@ export default function AboutPage() {
       </section>
 
       {/* statistics */}
-      <section className="section-pad-tight" aria-label="Raqamlarda">
+      <section data-ambient="/images/news-stem.jpg" className="section-pad-tight" aria-label="Raqamlarda">
         <div className="container-x">
           <div className="n grid gap-10 px-7 py-12 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
             {STATS.map((s, i) => (
@@ -150,7 +150,7 @@ export default function AboutPage() {
       </section>
 
       {/* facilities overview */}
-      <section id="facilities" className="section-pad" aria-label="Inshootlar">
+      <section id="facilities" data-ambient="/images/edu-sport.jpg" className="section-pad" aria-label="Inshootlar">
         <div className="container-x">
           <SectionHeader
             index="02"

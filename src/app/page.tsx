@@ -28,6 +28,9 @@ const CHAPTERS: StoryChapter[] = [
 ];
 
 /**
+ * Har bir bob o'z fon rasmini e'lon qiladi (`data-ambient`) — AmbientBackdrop
+ * scroll paytida shu bo'limga mos rasmga animatsiya bilan o'tadi.
+ *
  * HOMEPAGE — a paced visual story in 11 acts.
  * All content flows from src/data/* (DB-ready for Phase 3).
  * Native scrolling throughout; motion layers on top (no hijacking).
@@ -35,48 +38,48 @@ const CHAPTERS: StoryChapter[] = [
 export default function HomePage() {
   return (
     <>
-      {/* 01 — cinematic hero */}
+      {/* 01 — cinematic hero (3D "bilim yadrosi" bilan) */}
       <Hero />
       {/* values strip */}
       <Marquee />
       {/* 02 — introduction */}
-      <div id="bob-tanishuv">
+      <div id="bob-tanishuv" data-ambient="/images/intro.jpg">
         <Intro />
       </div>
       {/* 03 — school in numbers */}
-      <div id="bob-raqamlar" className="section-pad-tight">
+      <div id="bob-raqamlar" data-ambient="/images/edu-quality.jpg" className="section-pad-tight">
         <Stats />
       </div>
       {/* 04 — education experience */}
-      <div id="bob-talim">
+      <div id="bob-talim" data-ambient="/images/edu-classroom.jpg">
         <EducationGrid />
       </div>
       {/* 05 — immersive school life */}
-      <div id="bob-hayot">
+      <div id="bob-hayot" data-ambient="/images/life-ijod.jpg">
         <LifeMosaic />
       </div>
       {/* 06 — learning environment */}
-      <div id="bob-inshootlar">
+      <div id="bob-inshootlar" data-ambient="/images/edu-library.jpg">
         <FacilitiesStory />
       </div>
       {/* 07 — teachers */}
-      <div id="bob-jamoa">
+      <div id="bob-jamoa" data-ambient="/images/edu-inclusive.jpg">
         <TeamSection />
       </div>
       {/* 08 — news & events */}
-      <div id="bob-yangiliklar">
+      <div id="bob-yangiliklar" data-ambient="/images/news-open-door.jpg">
         <NewsSection />
       </div>
       {/* 09 — quick access */}
-      <div id="bob-havolalar">
+      <div id="bob-havolalar" data-ambient="/images/edu-sport.jpg">
         <QuickAccess />
       </div>
       {/* 10 — location */}
-      <div id="bob-manzil">
+      <div id="bob-manzil" data-ambient="/images/life-muhit.jpg">
         <Location />
       </div>
       {/* 11 — final CTA */}
-      <div id="bob-aloqa">
+      <div id="bob-aloqa" data-ambient="/images/edu-events.jpg">
         <FinalCta />
       </div>
 

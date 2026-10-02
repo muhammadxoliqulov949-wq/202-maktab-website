@@ -13,6 +13,7 @@ export function HeroFx() {
     const media = document.querySelector<HTMLElement>("[data-hero-media]");
     const content = document.querySelector<HTMLElement>("[data-hero-content]");
     const cue = document.querySelector<HTMLElement>("[data-hero-cue]");
+    const stage3d = document.querySelector<HTMLElement>("[data-hero-3d]");
     if (!media || !content) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -38,6 +39,11 @@ export function HeroFx() {
         content.style.transform = `translate3d(0, ${(-p * 56).toFixed(1)}px, 0)`;
         content.style.opacity = String(Math.max(0, 1 - p * 1.05));
         if (cue) cue.style.opacity = String(Math.max(0, 1 - p * 2.4));
+        if (stage3d) {
+          // 3D obyekt scroll'da sekinroq kichrayadi — chuqurlik hissi
+          stage3d.style.transform = `translate3d(${(p * 4).toFixed(2)}%, ${(-p * 34).toFixed(1)}px, 0) scale(${(1 - p * 0.1).toFixed(3)})`;
+          stage3d.style.opacity = String(Math.max(0, 1 - p * 1.25));
+        }
         ticking = false;
       });
     };

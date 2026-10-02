@@ -1720,3 +1720,285 @@ select.field {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 72%, transparent), var(--shadow-inset-sm);
   border-color: transparent;
 }
+
+/* ============================================================================
+   DESIGN 3.0 — 3D MOTION · PREMIUM GLASS · STORY BACKGROUNDS
+   ----------------------------------------------------------------------------
+   Qatlamlar (pastdan yuqoriga):
+     .ambient      → bo'limga mos rasm (scroll'da animatsiya bilan almashadi)
+     .cursor-spot  → kursor nuri (faqat desktop)
+     kontent       → glass yuzalar, 3D tilt, 3D reveal
+   ============================================================================ */
+
+/* ---------- 1) Bo'limga mos fon: animatsiyali almashinuv ---------- */
+
+.ambient-media.is-rest {
+  opacity: var(--ambient-strength);
+  transform: none;
+}
+
+.ambient-media.is-entering {
+  animation: ambientIn 1.7s var(--ease-out) both;
+}
+
+@keyframes ambientIn {
+  from { opacity: 0; transform: scale(1.09) translate3d(0, 1.6%, 0); filter: blur(10px); }
+  to { opacity: var(--ambient-strength); transform: none; filter: blur(0); }
+}
+
+.ambient-media.is-static { animation: none !important; opacity: var(--ambient-strength); transform: none; }
+
+/* ---------- 2) Kursor nuri ---------- */
+
+.cursor-spot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 560px;
+  height: 560px;
+  margin: -280px 0 0 -280px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  opacity: 0.75;
+  mix-blend-mode: screen;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 62%);
+}
+
+/* ---------- 3) Hero: 3D "bilim yadrosi" + shisha statistik panel ---------- */
+
+.hero-grid { display: grid; gap: 1.75rem; }
+
+@media (min-width: 1024px) {
+  .hero-grid { grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr); align-items: center; }
+  .hero-copy { max-width: min(640px, 52vw); }
+}
+
+.hero-3d-wrap {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  display: none;
+  right: max(1rem, 3vw);
+  top: 50%;
+  width: min(42vw, 560px);
+  aspect-ratio: 1 / 1;
+  transform: translate3d(0, -50%, 0);
+}
+
+@media (min-width: 1024px) { .hero-3d-wrap { display: block; } }
+
+.hero3d,
+.hero3d-canvas { position: relative; width: 100%; height: 100%; }
+
+.hero-3d-glow {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(62, 224, 166, 0.26) 0%, transparent 64%);
+  filter: blur(34px);
+  z-index: -1;
+}
+
+/* CSS 3D zaxira (WebGL yo'q / reduced-motion) */
+.hero3d-fallback { position: absolute; inset: 0; display: grid; place-items: center; transform-style: preserve-3d; perspective: 900px; }
+
+.hero3d-core {
+  display: grid;
+  place-items: center;
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
+  color: var(--primary-contrast);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--primary-soft) 85%, transparent), color-mix(in srgb, var(--primary) 92%, transparent));
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px color-mix(in srgb, var(--primary-contrast) 22%, transparent);
+  animation: coreFloat 6s var(--ease) infinite;
+}
+
+.hero3d-ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 16%, transparent) inset;
+  animation: ringSpin 22s linear infinite;
+}
+
+.hero3d-ring-1 { transform: rotateX(74deg); }
+.hero3d-ring-2 { inset: 18%; border-color: color-mix(in srgb, #9dc4ff 40%, transparent); animation-duration: 16s; animation-direction: reverse; transform: rotateX(66deg) rotateY(18deg); }
+.hero3d-ring-3 { inset: 28%; animation-duration: 11s; transform: rotateX(58deg) rotateY(-14deg); }
+
+.hero3d-node {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--accent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.hero3d-node-1 { top: 12%; left: 52%; animation: coreFloat 5s var(--ease) infinite; }
+.hero3d-node-2 { top: 62%; left: 18%; animation: coreFloat 7s var(--ease) infinite reverse; background: #9dc4ff; }
+.hero3d-node-3 { top: 74%; left: 74%; animation: coreFloat 6.4s var(--ease) infinite; }
+
+@keyframes ringSpin { to { rotate: 360deg; } }
+@keyframes coreFloat { 0%, 100% { translate: 0 -6px; } 50% { translate: 0 10px; } }
+
+/* hero statistik "shisha" paneli */
+.hero-stat {
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  transition: transform 0.35s var(--ease), background-color 0.35s var(--ease);
+}
+
+.hero-stat:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.15); }
+
+.hero-stat-k {
+  font-family: var(--font-display);
+  font-size: 1.28rem;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-stat-v { font-size: 0.76rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
+
+/* ---------- 4) 3D tilt (kartalar, panellar) ---------- */
+
+[data-tilt] { position: relative; }
+
+.tilt-ready {
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translate3d(0, var(--tilt-lift, 0px), var(--tilt-z, 0px));
+  transform-style: preserve-3d;
+  transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease);
+  will-change: transform;
+}
+
+.tilt-ready:hover { --tilt-lift: -6px; transition: transform 0.1s linear, box-shadow 0.35s var(--ease); }
+
+[data-tilt]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+  background: radial-gradient(340px circle at var(--tilt-px, 50%) var(--tilt-py, 50%), color-mix(in srgb, var(--accent) 24%, transparent), transparent 64%);
+  mix-blend-mode: screen;
+}
+
+[data-tilt]:hover::after { opacity: 1; }
+
+/* ---------- 5) Scroll parallaksi (3D chuqurlik) ---------- */
+
+[data-parallax] {
+  transform: translate3d(0, var(--parallax-y, 0px), 0);
+  will-change: transform;
+}
+
+/* ---------- 6) 3D reveal variantlari ---------- */
+
+.js [data-reveal="flip"] {
+  opacity: 0;
+  transform: perspective(1200px) rotateX(17deg) translateY(30px) scale(0.97);
+  transform-origin: 50% 100%;
+}
+
+.js [data-reveal="depth"] {
+  opacity: 0;
+  transform: perspective(1200px) translateZ(-80px) translateY(22px) scale(0.96);
+}
+
+.js [data-reveal="tilt-l"] {
+  opacity: 0;
+  transform: perspective(1200px) rotateY(-15deg) translateX(-26px);
+  transform-origin: left center;
+}
+
+.js [data-reveal="tilt-r"] {
+  opacity: 0;
+  transform: perspective(1200px) rotateY(15deg) translateX(26px);
+  transform-origin: right center;
+}
+
+.js [data-reveal="flip"].is-in,
+.js [data-reveal="depth"].is-in,
+.js [data-reveal="tilt-l"].is-in,
+.js [data-reveal="tilt-r"].is-in { opacity: 1; transform: none; }
+
+/* ---------- 7) Premium tipografiya (kunduzgi rejimda ham professional) ---------- */
+
+.display { letter-spacing: -0.032em; text-shadow: 0 2px 30px rgba(6, 14, 30, 0.35); }
+.hero-stage .display { text-shadow: 0 3px 34px rgba(5, 12, 26, 0.5); }
+
+.h2 { text-wrap: balance; }
+.h3 { text-wrap: balance; }
+.lead { line-height: 1.78; }
+
+.sec-index {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 26px;
+  padding-inline: 9px;
+  margin-right: 6px;
+  border-radius: 9px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow { letter-spacing: 0.2em; }
+
+.newsdate,
+.hero-stat-k,
+[data-stat] { font-variant-numeric: tabular-nums; }
+
+/* kunduzgi rejim: matn kontrasti va sirt nisbatlari aniq (AA) */
+:root { --glass-blur: 20px; }
+
+[data-theme="light"] .lead,
+:root .lead { color: var(--muted); }
+
+.n p, .n li { color: var(--muted); }
+.n h3, .n h2 { color: var(--ink); }
+
+/* ---------- 8) Storytelling: bob ajratkichlari ---------- */
+
+.band { position: relative; }
+
+.band::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 40%, transparent), transparent);
+  opacity: 0.7;
+}
+
+/* ---------- 9) Reduced motion / transparency ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-media.is-entering { animation: none; opacity: var(--ambient-strength); transform: none; filter: none; }
+  .tilt-ready { transform: none !important; }
+  .hero3d-core, .hero3d-ring, .hero3d-node { animation: none !important; }
+  [data-parallax] { transform: none !important; }
+  .js [data-reveal="flip"], .js [data-reveal="depth"], .js [data-reveal="tilt-l"], .js [data-reveal="tilt-r"] { opacity: 1 !important; transform: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .cursor-spot { display: none; }
+  .hero-stat { background: var(--primary); }
+}
