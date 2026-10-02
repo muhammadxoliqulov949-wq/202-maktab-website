@@ -46,7 +46,12 @@ const EXPECTED = {
   news_articles: 6,
   contact_submissions: 0,
   media_assets: 0,
-  admin_audit_logs: 0,
+  // APPEND-ONLY jurnal: admin CRUD smoke (4-bo'lim) har yugurishda audit yozuvi
+  // qoldiradi va audit-log'ni o'chirish API'si ataylab yo'q. Shu sababli aniq
+  // "0" faqat birinchi (toza) yugurishda to'g'ri; keyingi yugurishlarda bu
+  // jadval faqat o'qilishini tekshiramiz. Yozuvlarning mazmuni quyida
+  // "audit: PUBLISH yozuvi bor" tekshiruvi bilan qoplanadi.
+  admin_audit_logs: null,
 };
 
 async function tableCount(table) {
@@ -118,6 +123,8 @@ try {
     const { count, error } = await tableCount(table);
     if (error !== undefined) {
       check(`jadval: ${table}`, false, `REST xato (${error}) — migratsiya qo'llanilmagan bo'lishi mumkin`);
+    } else if (expected === null) {
+      check(`jadval: ${table}`, typeof count === "number", `${count} qator (append-only — aniq son tekshirilmaydi)`);
     } else {
       check(`jadval: ${table}`, count === expected, `${count} qator (kutilgan ${expected})`);
     }
@@ -137,18 +144,7 @@ try {
   // Muhim: /api/v1/team sahifalanadi (limit 1–50, default 12). Shu sababli
   // to'liq ro'yxat faqat `limit=50` bilan olinadi; aks holda 1-sahifa (12 ta)
   // qaytadi va 16 a'zoning oxirgi 4 tasi (p-13…p-16) tekshiruvdan chetda qoladi.
-  // TEMP DIAGNOSTIKA (annotation orqali o'qiladi; keyin olib tashlanadi)
-  try {
-    const r = await fetch(`${SUPA}/rest/v1/team_members?select=id,full_name,is_visible,sort_order,member_group&order=sort_order`, {
-      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
-    });
-    const rows = await r.json();
-    console.log(`::notice::DB team_members (${rows.length}): ${rows.map((x) => `${x.id}/${x.is_visible ? "V" : "H"}/${x.sort_order}/${x.member_group}`).join(" ")}`);
-  } catch (e) {
-    console.log(`::notice::DB team debug failed: ${e.message}`);
-  }
   const team = await pub("/api/v1/team?limit=50");
-  console.log(`::notice::API team: status=${team.status} len=${team.body?.data?.length} total=${team.body?.meta?.total} limit=${team.body?.meta?.limit} ids=${(team.body?.data ?? []).map((m) => m.id).join(",")}`);
   const teamIds = new Set((team.body?.data ?? []).map((m) => m.id));
   const missingTeam = ["p-13", "p-14", "p-15", "p-16"].filter((id) => !teamIds.has(id));
   check(
@@ -264,8 +260,8 @@ if (failed.length) {
   console.log("O'tmaganlar:");
   for (const f of failed) {
     console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
-    // TEMP DIAGNOSTIKA: annotation (log yuklab bo'lmaydigan muhitlarda ham API orqali ko'rinadi)
-    console.log(`::error::FAIL: ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+    // Actions'da muvaffaqiyatsiz tekshiruvni annotation sifatida ham chiqaramiz
+    if (process.env.GITHUB_ACTIONS === "true") console.log(`::error::FAIL: ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
   }
   exitCode = 1;
 }
