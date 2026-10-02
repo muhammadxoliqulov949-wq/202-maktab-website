@@ -134,8 +134,18 @@ try {
   const news = await pub("/api/v1/news");
   check("GET /api/v1/news", news.status === 200 && Array.isArray(news.body?.data), `${news.body?.data?.length ?? "?"} ta yangilik`);
   check("yangilik slug detail", (await pub("/api/v1/news/yangi-oquv-yili-2026")).status === 200);
-  const team = await pub("/api/v1/team");
-  check("GET /api/v1/team", team.status === 200 && team.body?.data?.length === 16, `${team.body?.data?.length ?? "?"} ta a'zo`);
+  // Muhim: /api/v1/team sahifalanadi (limit 1–50, default 12). Shu sababli
+  // to'liq ro'yxat faqat `limit=50` bilan olinadi; aks holda 1-sahifa (12 ta)
+  // qaytadi va 16 a'zoning oxirgi 4 tasi (p-13…p-16) tekshiruvdan chetda qoladi.
+  const team = await pub("/api/v1/team?limit=50");
+  const teamIds = new Set((team.body?.data ?? []).map((m) => m.id));
+  const missingTeam = ["p-13", "p-14", "p-15", "p-16"].filter((id) => !teamIds.has(id));
+  check(
+    "GET /api/v1/team",
+    team.status === 200 && team.body?.data?.length === 16 && team.body?.meta?.total === 16 && missingTeam.length === 0,
+    `${team.body?.data?.length ?? "?"} ta a'zo (meta.total=${team.body?.meta?.total ?? "?"}, kutilgan 16)` +
+      (missingTeam.length ? ` — yetishmayapti: ${missingTeam.join(", ")}` : "")
+  );
   const faqs = await pub("/api/v1/faqs");
   check("GET /api/v1/faqs", faqs.status === 200 && faqs.body?.data?.items?.length === 5);
   const cfg = await pub("/api/v1/site-config");

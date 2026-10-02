@@ -147,6 +147,32 @@ test("team: role filter preserves six Phase 1 people total", async () => {
   assert.equal(lead.data[0].id, "p-01");
 });
 
+test("team: default page is 12 of 16 — full list needs limit (Phase 3 verify regression)", async () => {
+  // Regressiya konteksti: Supabase verify skripti /api/v1/team'ni limitsiz
+  // so'rab, 12 ta olgan va "16 kutilgan" tekshiruvi yiqilgan edi. Sabab filtr
+  // emas — sahifalash: barcha 16 a'zo PUBLIC (SEED.sql: is_visible=true),
+  // default limit esa 12 (docs/API.md). Quyidagi test ikkala haqiqatni ham
+  // qulflaydi: hech bir a'zo filtrlanmaydi va limit=50 bilan 16 tasi qaytadi.
+  const page1 = await (await get("/api/v1/team")).json();
+  assert.equal(page1.meta.total, 16);
+  assert.equal(page1.meta.limit, 12);
+  assert.equal(page1.meta.totalPages, 2);
+  assert.equal(page1.data.length, 12);
+
+  const all = await (await get("/api/v1/team?limit=50")).json();
+  assert.equal(all.meta.total, 16);
+  assert.equal(all.meta.limit, 50);
+  assert.equal(all.meta.totalPages, 1);
+  assert.equal(all.data.length, 16);
+  assert.deepEqual(
+    all.data.map((m) => m.id),
+    Array.from({ length: 16 }, (_, i) => `p-${String(i + 1).padStart(2, "0")}`)
+  );
+  for (const id of ["p-13", "p-14", "p-15", "p-16"]) {
+    assert.ok(all.data.some((m) => m.id === id), `${id} limit=50 javobida bo'lishi kerak`);
+  }
+});
+
 test("team: search by subject finds physics teacher", async () => {
   const json = await (await get("/api/v1/team?search=fizika")).json();
   assert.equal(json.meta.total, 1);

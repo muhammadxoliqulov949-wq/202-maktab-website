@@ -58,6 +58,8 @@ GET /api/v1/team/:id
 ```
 
 - `role`: leadership | teachers | administration · `subject`: fan nomi bo'yicha qism-qidiruv
+- `limit`: 1–50 (**default 12**) · javob `meta`: page, limit, total, totalPages
+  → barcha 16 a'zoni bitta so'rovda olish uchun `GET /api/v1/team?limit=50` (sahifalash filtr emas)
 - 16 prototip a'zo (p-01…p-06 portret, p-07+ avatar fallback) TTL: list 600s, item 900s
 
 ## Gallery
