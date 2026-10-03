@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { NavLabel } from "@/components/layout/NavLabel";
 import { NAV_LINKS } from "@/data/nav";
 import { site } from "@/data/site";
 
@@ -191,8 +192,14 @@ export function Navbar() {
             {/* desktop nav */}
             <nav className="mx-auto hidden items-center lg:flex" aria-label="Asosiy menyu">
               {NAV_LINKS.map((l) => (
-                <Link key={l.href} href={l.href} className="nav-link" aria-current={isActive(l.href) ? "page" : undefined}>
-                  {l.label}
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="nav-link"
+                  aria-label={l.label}
+                  aria-current={isActive(l.href) ? "page" : undefined}
+                >
+                  <NavLabel text={l.label} />
                 </Link>
               ))}
             </nav>

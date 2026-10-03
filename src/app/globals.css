@@ -567,7 +567,7 @@ select.field {
   transition: color 0.25s var(--ease), background-color 0.25s var(--ease);
 }
 
-.nav-link:hover { color: var(--ink); background: var(--accent-soft); }
+.nav-link:hover { color: var(--ink); }  /* fon/ramka yo'q — faqat harflar jonlanadi */
 
 .nav-link[aria-current="page"] { color: var(--ink); font-weight: 750; }
 
@@ -622,8 +622,9 @@ select.field {
 
 .nav-shell[data-tone="over-media"]:not(.scrolled) .nav-link { color: rgba(255, 255, 255, 0.82); }
 .nav-shell[data-tone="over-media"]:not(.scrolled) .nav-link:hover {
+  /* ramka/fon ataylab yo'q: hover'da faqat harflar kattalashadi va olovrang bo'ladi */
   color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
 }
 .nav-shell[data-tone="over-media"]:not(.scrolled) .nav-link[aria-current="page"] { color: #fff; }
 
@@ -2043,102 +2044,65 @@ select.field {
   .tile::before, .person::before, .mediacard::before { animation: none !important; }
 }
 
-/* ---------- 2) Tepa bar: 3D kattalashuv + qolganlarining xiralashishi ---------- */
+/* ---------- 2) Tepa bar: harflar ketma-ket 3D kattalashadi + olovrang ---------- */
+/* MUHIM: hover'da so'zning RAMKASI/FONI o'zgarmaydi — faqat harflar. */
 
 @media (hover: hover) and (min-width: 1024px) {
-  .nav-shell nav[aria-label="Asosiy menyu"] {
-    perspective: 720px;
-    transform-style: preserve-3d;
+  .nav-shell nav[aria-label="Asosiy menyu"] { perspective: 900px; }
+
+  .nav-label { display: inline-flex; align-items: center; }
+
+  .nav-char {
+    display: inline-block;
+    white-space: pre;
+    transform-origin: 50% 92%;
+    backface-visibility: hidden;
+    /* kursor ketganda harflar teskari tartibda (o'ngdan chapga) joyiga qaytadi */
+    transition: transform 0.42s var(--ease-out), color 0.42s var(--ease);
+    transition-delay: calc((var(--n) - var(--i)) * 24ms);
   }
 
-  .nav-link {
-    transform-style: preserve-3d;
-    transition: transform 0.42s var(--ease-out), color 0.35s var(--ease), filter 0.42s var(--ease),
-      opacity 0.42s var(--ease), text-shadow 0.42s var(--ease), background-color 0.3s var(--ease);
-  }
-
-  /* boshqa bo'limlar: silliq va o'qib bo'lmaydigan darajada xira */
-  .nav-shell nav[aria-label="Asosiy menyu"]:hover .nav-link {
-    filter: blur(4.2px) saturate(0.35);
-    opacity: 0.34;
-    transform: scale(0.94);
-  }
-
-  /* kursor ostidagi bo'lim: 3D kattalashadi + olovrang.
-     MUHIM: yuqoridagi `[data-tone="over-media"] ... .nav-link:hover` (oq matn)
-     qoidasi kuchliroq; shuning uchun bu yerda ataylab aniqroq selektorlar —
-     aks holda matn oq bo'lib qoladi (haqiqiy xato shu edi). */
-  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover,
-  .nav-shell.scrolled nav[aria-label="Asosiy menyu"] .nav-link:hover,
-  .nav-shell[data-tone="solid"] nav[aria-label="Asosiy menyu"] .nav-link:hover,
-  .nav-shell[data-tone="over-media"]:not(.scrolled) nav[aria-label="Asosiy menyu"] .nav-link:hover,
-  .nav-shell[data-tone="over-media"]:not(.scrolled) nav[aria-label="Asosiy menyu"] .nav-link[aria-current="page"]:hover {
-    filter: none;
-    opacity: 1;
+  /* kursor ostidagi so'z: harflar chapdan o'ngga navbatma-navbat ko'tariladi */
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover .nav-char {
     color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
-    transform: perspective(720px) translateZ(52px) scale(1.18) rotateX(-4deg);
-    text-shadow: 0 8px 26px rgba(255, 106, 0, 0.55), 0 0 14px rgba(255, 138, 43, 0.45);
+    animation: charRise 0.52s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 44ms);
+    transition-delay: 0s;
+    will-change: transform;
   }
 
-  /* kursor ostidagi bo'lim atrofida aylanuvchi olov halqasi */
-  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link {
-    isolation: isolate;
-    border-radius: 14px;
+  @keyframes charRise {
+    0% {
+      transform: perspective(360px) translateZ(0) scale(1);
+    }
+    55% {
+      transform: perspective(360px) translateZ(30px) scale(calc(1 + 0.42 * var(--k)));
+    }
+    100% {
+      transform: perspective(360px) translateZ(60px) scale(calc(1 + 0.62 * var(--k)));
+    }
   }
 
-  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1.5px;
-    pointer-events: none;
-    opacity: 0;
-    z-index: 2;
-    background: conic-gradient(
-      from var(--ring-angle),
-      transparent 0deg,
-      transparent 34deg,
-      rgba(255, 122, 26, 0.35) 68deg,
-      #ff6a00 104deg,
-      #ffd7a3 122deg,
-      #ff6a00 140deg,
-      rgba(255, 122, 26, 0.35) 176deg,
-      transparent 210deg,
-      transparent 360deg
-    );
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    filter: drop-shadow(0 0 7px rgba(255, 106, 0, 0.6));
-    transition: opacity 0.3s var(--ease);
-  }
-
-  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover::before {
-    opacity: 1;
-    animation: ringSweep 1.9s linear infinite;
-  }
-
-  .nav-shell:not(.scrolled) nav[aria-label="Asosiy menyu"] .nav-link::before {
-    background: conic-gradient(
-      from var(--ring-angle),
-      transparent 0deg,
-      transparent 34deg,
-      rgba(255, 200, 150, 0.35) 68deg,
-      #ff8a2b 104deg,
-      #ffe6c9 122deg,
-      #ff8a2b 140deg,
-      rgba(255, 200, 150, 0.3) 176deg,
-      transparent 210deg,
-      transparent 360deg
-    );
+  /* so'zning boshqa hech qanday qismi (fon, chegara, soya) o'zgarmasin */
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link,
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover {
+    background: transparent;
+    box-shadow: none;
+    text-shadow: none;
+    transform: none;
   }
 
   .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover::after {
     background: var(--accent);
-    box-shadow: 0 0 12px rgba(255, 106, 0, 0.7);
+    box-shadow: none;
+  }
+
+  /* boshqa bo'limlar: silliq va o'qib bo'lmaydigan darajada xira */
+  .nav-shell nav[aria-label="Asosiy menyu"]:hover .nav-link:not(:hover) {
+    filter: blur(4.6px) saturate(0.3);
+    opacity: 0.3;
+    transform: scale(0.96);
+    transition: transform 0.42s var(--ease-out), filter 0.42s var(--ease), opacity 0.42s var(--ease);
   }
 
   /* bar'ning qolgan qismlari ham silliq hiralashadi */
@@ -2146,14 +2110,22 @@ select.field {
   .nav-row:has(nav[aria-label="Asosiy menyu"]:hover) .nav-right {
     filter: blur(2.6px) saturate(0.5);
     opacity: 0.42;
-    transition: filter 0.45s var(--ease), opacity 0.45s var(--ease);
   }
 
   .nav-brand,
-  .nav-right { transition: filter 0.45s var(--ease), opacity 0.45s var(--ease); }
+  .nav-right,
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link {
+    transition: filter 0.45s var(--ease), opacity 0.45s var(--ease), transform 0.42s var(--ease-out),
+      background-color 0.25s var(--ease);
+  }
 
   /* ochilgan mobil varaq ham xira bo'lmasin */
-  .nav-shell nav[aria-label="Mobil asosiy menyu"] .nav-link { filter: none !important; }
+  .nav-shell nav[aria-label="Mobil asosiy menyu"] .nav-link { filter: none !important; opacity: 1 !important; }
+}
+
+/* kichik ekran / hover yo'q: harflar oddiy, hech qanday siljish yo'q */
+@media (hover: none), (max-width: 1023.98px) {
+  .nav-char { display: inline-block; white-space: pre; }
 }
 
 /* ---------- 3) Kartalar hover'ida olovrang urg'u ---------- */
