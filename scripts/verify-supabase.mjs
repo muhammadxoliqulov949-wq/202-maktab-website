@@ -104,6 +104,23 @@ async function createAuthUser(email, password) {
   return (await res.json()).id;
 }
 
+/**
+ * Smoke-test rows must never survive a run. If a run aborts before its own
+ * cleanup (e.g. the admin API is unavailable), a leftover "CI Smoke" submission
+ * would make the exact-count assertion fail on the NEXT run. Deleted both
+ * up-front and in `finally`. The space is percent-encoded on purpose: an
+ * unencoded space in the query string is not reliably handled by PostgREST.
+ */
+async function cleanupSmokeRows(where = "") {
+  const qs = "name=eq." + encodeURIComponent("CI Smoke");
+  const found = await rest("contact_submissions", { qs: `select=id&${qs}` });
+  const rows = await found.json().catch(() => null);
+  if (!Array.isArray(rows) || rows.length === 0) return 0;
+  await rest("contact_submissions", { method: "DELETE", qs });
+  console.log(`· ${where}qolgan ${rows.length} ta "CI Smoke" murojaati tozalandi`);
+  return rows.length;
+}
+
 async function deleteAuthUser(id) {
   await fetch(`${SUPA}/auth/v1/admin/users/${id}`, { method: "DELETE", headers: restHeaders }).catch(() => {});
 }
@@ -203,18 +220,8 @@ try {
   const applied = await applyMigration("0004_auth.sql");
   if (applied) check("migratsiya 0004_auth.sql qo'llandi", applied.ok, applied.detail ?? "Management API orqali");
 
-  /* ============ 0b) oldingi yugurish qoldiqlarini tozalash ============
-   * Agar avvalgi yugurish admin sessiyasi yo'qligi sababli to'xtab qolgan
-   * bo'lsa, "CI Smoke" murojaati bazada qolib ketadi va aniq-son tekshiruvi
-   * noto'g'ri yiqiladi. Skriptni o'z-o'zini tiklaydigan qilamiz. */
-  {
-    const stale = await rest("contact_submissions", { qs: "select=id,name&name=eq.CI Smoke" });
-    const rows = Array.isArray(stale.json) ? stale.json : [];
-    if (rows.length) {
-      await rest("contact_submissions", { method: "DELETE", qs: "name=eq.CI Smoke" });
-      console.log(`· oldingi yugurishdan qolgan ${rows.length} ta "CI Smoke" murojaati tozalandi`);
-    }
-  }
+  /* ============ 0b) oldingi yugurish qoldiqlari ============ */
+  await cleanupSmokeRows("oldingi yugurishdan ");
 
   /* ============ 1) jadvallar ============ */
   console.log(`\n── Supabase REST tekshiruvi: ${new URL(SUPA).host}\n`);
@@ -566,6 +573,7 @@ try {
   // ---- cleanup: auth foydalanuvchilari (admin_users cascade bilan o'chadi) ----
   for (const id of created.authUsers) await deleteAuthUser(id);
   for (const id of created.adminRows) await rest("admin_users", { method: "DELETE", qs: `id=eq.${id}` }).catch(() => {});
+  await cleanupSmokeRows("yugurish yakunida ").catch(() => {});
   if (server) {
     server.removeAllListeners();
     server.stdout.destroy();
