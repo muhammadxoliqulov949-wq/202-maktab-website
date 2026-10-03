@@ -61,7 +61,7 @@ export function NewsSection() {
           </Reveal>
 
           {/* side list */}
-          <div className="grid content-start gap-4">
+          <div className="rail grid content-start gap-4">
             {rest.map((n, i) => (
               <Reveal key={n.slug} delay={i * 90}>
                 <Link href={`/news/${n.slug}`} className="n n-card group flex items-stretch gap-0 overflow-hidden" aria-label={n.title}>

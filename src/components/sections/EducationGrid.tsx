@@ -25,7 +25,7 @@ export function EducationGrid() {
           description="Oltita ustun — darsdan tadbirgacha, kutubxonadan sport zaligacha. Har bir yo‘nalish bolaning to‘liq rivojlanishiga xizmat qiladi."
         />
 
-        <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="rail grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {EDU_FEATURES.map((f, i) => {
             const featured = f.image && i === 1; // asymmetric: the "classrooms" tile becomes media tile
             return (

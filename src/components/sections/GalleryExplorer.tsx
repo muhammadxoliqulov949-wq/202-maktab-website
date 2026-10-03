@@ -99,7 +99,7 @@ export function GalleryExplorer() {
           <p className="mt-3 text-muted">Tanlangan toifa/albom kombinatsiyasida media yo‘q.</p>
         </div>
       ) : (
-        <div className="grid auto-rows-auto grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
+        <div className="rail grid auto-rows-auto grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
           {filtered.map((g, i) => (
             <button
               key={g.id}

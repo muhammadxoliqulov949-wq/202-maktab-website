@@ -2170,3 +2170,409 @@ select.field {
 .eyebrow::before { background: linear-gradient(90deg, #ff8f3c, var(--accent)); }
 .tag { background: var(--accent-soft); color: var(--accent-ink); }
 ::selection { background: var(--accent); color: #1b0d00; }
+
+/* ============================================================================
+   MOBIL 5.0 — TELEFON UCHUN PROFESSIONAL UI/UX QATLAMI
+   ----------------------------------------------------------------------------
+   Maqsad: telefon ekranida sayt "siqilgan desktop" emas, balki o'zicha
+   loyihalashtirilgan mahsulot bo'lib ko'rinishi. Asosiy tamoyillar:
+     1. Har bir hikoya bobi — aynan bitta ekran (100svh), kontent vertikal
+        markazda; ortiqcha narsa kichrayadi yoki "swipe" karuselga o'tadi.
+     2. Barmoqqa qulay: teginish maydonlari >= 44px, press-effekt, iOS
+        safe-area (tirqish/uy indikatori) hisobga olinadi.
+     3. Tipografika: bitta ustun, 16px+ matn (iOS fokus-zoom bo'lmaydi),
+        o'qish uchun qulay satr uzunligi.
+     4. Karta ro'yxatlari — gorizontal snap-karusel (rail): barmoq bilan
+        suriladi, bo'lim balandligi bir ekranga sig'adi.
+     5. Ishlash tezligi: og'ir blur/soya kamaytiriladi, fon rasm kuchsizroq.
+   Faqat <= 767.98px (telefon) uchun; planshet/desktop tegilmaydi.
+   ============================================================================ */
+
+@media (max-width: 767.98px) {
+  /* ---------- 0) Asos: tokenlar, xavfsiz hudud, barmoq ergonomikasi ---------- */
+
+  :root {
+    --m-pad: clamp(1.05rem, 4.6vw, 1.4rem);   /* yon chegara */
+    --m-gap: 0.85rem;
+    --m-radius: 20px;
+    --ambient-strength: 0.24;                  /* matn o'qilishi uchun fon kuchsizroq */
+    --fs-lead: 1rem;
+  }
+
+  html {
+    scroll-padding-top: 74px;
+    -webkit-tap-highlight-color: transparent;
+    scroll-snap-type: y proximity;             /* bo'limlar orasida yumshoq "ilib tushish" */
+  }
+
+  body { font-size: 1rem; line-height: 1.62; }
+
+  .container-x { padding-inline: var(--m-pad); }
+
+  .section-pad { padding-block: clamp(2.4rem, 7.5vw, 3.2rem); }
+  .section-pad-tight { padding-block: clamp(1.9rem, 6vw, 2.6rem); }
+
+  /* ---------- 1) "Har bob — bitta ekran" ---------- */
+
+  main > [id^="bob-"] {
+    min-height: 100vh;      /* eski brauzerlar uchun zaxira */
+    min-height: 100svh;     /* iOS/Android: dinamik tool-bar hisobga olinadi */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    overflow-x: clip;
+  }
+
+  main > [id^="bob-"] > * { width: 100%; }
+
+  /* ---------- 2) Tipografika (telefon shkalasi) ---------- */
+
+  .display { font-size: clamp(2.05rem, 8.8vw, 2.7rem); line-height: 1.06; letter-spacing: -0.032em; }
+  .h2 { font-size: clamp(1.5rem, 6.3vw, 1.95rem); line-height: 1.18; }
+  .lead { font-size: 1rem; line-height: 1.62; }
+  .eyebrow { font-size: 0.68rem; letter-spacing: 0.16em; gap: 8px; }
+  .kicker { font-size: 0.72rem; letter-spacing: 0.14em; }
+  .sec-head { gap: 12px; margin-bottom: 1.6rem; }
+  .sec-index { display: none; }              /* telefonda ortiqcha "shovqin" */
+  .watermark { display: none; }
+
+  /* ---------- 3) Hero ---------- */
+
+  .hero-stage {
+    height: auto;
+    min-height: 100svh;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .hero-stage .container-x:first-of-type {
+    padding-top: max(96px, calc(78px + env(safe-area-inset-top)));
+    padding-bottom: 0.6rem;
+  }
+
+  .hero-eyebrow { margin-bottom: 0.85rem; }
+  .hero-stage .display { font-size: clamp(2.1rem, 9.2vw, 2.75rem); }
+  .hero-support { margin-top: 1rem !important; font-size: 0.99rem; max-width: none; }
+
+  .hero-actions {
+    margin-top: 1.5rem !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .hero-actions .btn { width: 100%; justify-content: center; min-height: 52px; font-size: 0.98rem; padding: 15px 22px; }
+
+  /* shisha statistika paneli telefonda ham ko'rinadi — 3 ga bo'lib, ixcham */
+  .hero-stats {
+    display: grid;                            /* !important shart emas: unlayered qatlam ustun */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 1.6rem;
+    max-width: none;
+  }
+
+  .hero-stat { padding: 0.6rem 0.45rem; border-radius: 16px; }
+  .hero-stat-k { font-size: 1.02rem; }
+  .hero-stat-v { font-size: 0.63rem; letter-spacing: 0.06em; }
+
+  .hero-bottom { padding-bottom: calc(1.3rem + env(safe-area-inset-bottom)); }
+  .scroll-cue { font-size: 0.66rem; letter-spacing: 0.14em; gap: 9px; }
+
+  /* ---------- 4) Rail — barmoq bilan suriladigan karusel ---------- */
+
+  .rail {
+    display: flex;                            /* Tailwind "grid"ni yengadi (unlayered qatlam) */
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.8rem;
+    margin-inline: calc(var(--m-pad) * -1);
+    padding: 0.15rem var(--m-pad) 0.9rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--m-pad);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    /* o'ng chetda yumshoq so'nish — "yana bor" ishorasi */
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 30px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 30px), transparent 100%);
+  }
+
+  .rail::-webkit-scrollbar { display: none; }
+
+  .rail > * {
+    flex: 0 0 min(78%, 300px);
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
+  /* Karta turiga qarab kenglik. MUHIM: karuselning bevosita bolasi — Reveal
+     o'rami, shuning uchun karta turini `:has()` bilan aniqlaymiz. */
+  .rail > *:has(.tile)      { flex-basis: min(70%, 262px); }
+  .rail > *:has(.person)    { flex-basis: min(61%, 232px); }
+  .rail > *:has(.qlink)     { flex-basis: min(72%, 280px); }
+  .rail > *:has(.mediacard) { flex-basis: min(74%, 280px); }
+  .rail > .col-span-2       { flex-basis: min(88%, 360px); }
+  #bob-yangiliklar .rail > *:has(.n) { flex-basis: min(86%, 340px); }
+
+  /* karuseldagi media kartalar bir xil nisbatda — tekis, professional qator */
+  .rail .mediacard { aspect-ratio: 4 / 5; max-height: 330px; }
+  .rail > .col-span-2 .mediacard { aspect-ratio: 16 / 10; max-height: 260px; }
+  .rail .tile { max-height: 360px; }
+
+  /* rail ichidagi kartalar balandligi bir xil bo'lsin */
+  .rail > * > * { height: 100%; }
+
+  /* ---------- 5) Kartalar, ro'yxatlar, media ---------- */
+
+  .n { border-radius: var(--m-radius); box-shadow: var(--shadow-raised-sm); }
+  .qlink { padding: 15px 16px; border-radius: 18px; gap: 13px; }
+  .tile { min-height: 232px; padding: 1.15rem 1.2rem; }
+  .mediacard { min-height: 264px; }
+  .mediacard img { object-position: center 32%; }
+  .img-frame-tight { margin-bottom: 0.85rem; }
+  .img-frame { border-radius: var(--m-radius); }
+
+  .tile-ico, .qlink-ico { width: 42px; height: 42px; border-radius: 13px; }
+  .tile-ico svg, .qlink-ico svg { width: 20px; height: 20px; }
+
+  .person h3, .person .font-display { font-size: 1rem; }
+  .person { padding: 0.9rem 0.8rem 1.15rem; }
+  .person > div:first-child, .person .h-24 { width: 4.4rem; height: 4.4rem; font-size: 1.5rem; }
+
+  .sec-head + * { margin-top: 0; }
+  .marquee-track { font-size: 0.92rem; animation-duration: 44s; }
+  .map-shell { min-height: 280px; border-radius: var(--m-radius); }
+  .toast { bottom: calc(16px + env(safe-area-inset-bottom)); padding: 14px 18px; border-radius: 16px; }
+  .badge, .chip { padding: 7px 12px; font-size: 0.78rem; }
+
+  /* himoya: hech qanday element ekrandan oshib ketmasin */
+  img, video, iframe, table { max-width: 100%; }
+  .rail, .rail * { max-width: none; }
+
+  /* ---------- 6) Tepa bar va mobil varaq ---------- */
+
+  .nav-shell { padding-top: env(safe-area-inset-top); }
+  .nav-shell .nav-row { height: 62px !important; gap: 0.45rem; }
+  .brand-name { font-size: 0.94rem; }
+  .brand-sub { font-size: 0.58rem; letter-spacing: 0.1em; }
+  .icon-btn { width: 42px; height: 42px; border-radius: 13px; }
+  .nav-cta-mini { display: none; }
+
+  .sheet {
+    inset: 0 auto auto 0;
+    right: 0;
+    left: 0;
+    max-height: 100dvh;
+    border-radius: 0 0 28px 28px;
+    padding: calc(env(safe-area-inset-top) + 1.05rem) var(--m-pad) calc(env(safe-area-inset-bottom) + 1.3rem);
+    transform: translateY(-102%);
+    transition: transform 0.42s var(--ease-out), opacity 0.28s var(--ease);
+    overscroll-behavior: contain;
+  }
+
+  .sheet.open { transform: none; }
+  .sheet nav { gap: 0.3rem; }
+
+  .sheet-link {
+    min-height: 58px;
+    padding: 14px 16px;
+    font-size: 1.12rem;
+    border-radius: 18px;
+  }
+
+  .sheet-link[aria-current="page"] { box-shadow: inset 3px 0 0 var(--accent); }
+
+  .sheet .btn { min-height: 50px; }
+
+  /* ---------- 7) Teginish (touch) ergonomikasi ---------- */
+
+  .btn, .btn-sm, .btn-lg, .icon-btn, .sheet-link, .chip, .locale-btn { min-height: 44px; }
+  .btn-sm { padding: 12px 16px; font-size: 0.9rem; }
+
+  .btn:active, .icon-btn:active, .qlink:active, .n-card:active, .tile:active,
+  .person:active, .sheet-link:active, .chip:active, .mediacard:active {
+    transform: scale(0.975);
+    transition-duration: 0.12s;
+  }
+
+  /* hover effektlari telefonda "yopishib qolmasin" */
+  .n-card:hover, .qlink:hover, .tile:hover, .btn:hover { transform: none; }
+
+  /* ---------- 8) Fon (ambient) — yengilroq, o'qish uchun quyuqroq parda ---------- */
+
+  .cursor-spot { display: none; }
+  .ambient-veil {
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    backdrop-filter: blur(10px) saturate(1.05);
+    background:
+      radial-gradient(120% 70% at 50% 0%, transparent 0%, color-mix(in srgb, var(--bg) 76%, transparent) 62%, var(--bg) 100%),
+      linear-gradient(180deg, color-mix(in srgb, var(--bg) 74%, transparent), color-mix(in srgb, var(--bg) 88%, transparent));
+  }
+  .ambient-media { transition-duration: 0.9s; }
+  .hero-grain { opacity: 0.32; }
+  .grain-veil, .noise { opacity: 0.3; }
+
+  /* ---------- 9) Footer ---------- */
+
+  .band .foot-grid { gap: 2rem; padding-block: 2.6rem; }
+  .foot-grid nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem 1rem; }
+  .foot-grid nav .kicker { grid-column: 1 / -1; margin-bottom: 0.35rem; }
+  .foot-grid a { font-size: 0.92rem; }
+  .foot-bottom { flex-direction: column; align-items: center; gap: 0.9rem; text-align: center; }
+
+  /* ---------- 10) Ichki sahifalar ---------- */
+
+  .page-hero {
+    padding-top: calc(84px + env(safe-area-inset-top));
+    padding-bottom: 1.9rem;
+  }
+
+  .page-hero .display { font-size: clamp(1.85rem, 7.6vw, 2.35rem); }
+  .crumbs { margin-bottom: 1.1rem; font-size: 0.78rem; }
+  .page-hero .lead { font-size: 0.98rem; }
+
+  /* ichki sahifalardagi kartalar ro'yxati ham barmoq bilan suriladi */
+  .stagger, .grid.stagger { gap: 0.85rem; }
+
+  /* kontakt: iOS fokus-zoom bo'lmasligi uchun maydon matni >= 16px */
+  .field, .field input, .field textarea, .field select,
+  input, textarea, select { font-size: 16px; }
+
+  .field { min-height: 52px; padding: 15px 16px; border-radius: 16px; }
+  textarea.field { min-height: 128px; }
+  .faq-item { border-radius: 18px; }
+  .faq-item summary, .faq-item summary > * { min-height: 56px; }
+
+  .dropdown-panel { left: 0; right: auto; min-width: 190px; }
+
+  /* ---------- 11) Juda kichik va juda past ekranlar ---------- */
+
+  @media (max-width: 380px) {
+    .display { font-size: clamp(1.9rem, 9.6vw, 2.3rem); }
+    .hero-stats { gap: 0.4rem; }
+    .hero-stat-k { font-size: 0.95rem; }
+    .rail > * { flex-basis: min(84%, 280px); }
+  }
+
+  @media (max-height: 720px) {
+    main > [id^="bob-"] { min-height: 100vh; min-height: 100svh; }
+    .hero-stage .display { font-size: clamp(1.95rem, 8.4vw, 2.4rem); }
+    .hero-support { font-size: 0.94rem; }
+    .hero-stats { margin-top: 1.2rem; }
+    .hero-actions { margin-top: 1.2rem !important; }
+    .section-pad { padding-block: 2.1rem; }
+  }
+}
+
+/* Yumshoq snap — harakat kamaytirilgan rejimda o'chadi */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-snap-type: none; }
+}
+
+/* Barmoq bilan boshqariladigan qurilmalarda hover "yopishib qolmasin" */
+@media (hover: none) {
+  .n-card:hover, .qlink:hover, .tile:hover, .person:hover, .mediacard:hover { transform: none; box-shadow: var(--shadow-raised-sm); }
+}
+
+/* ---------- 12) Inshootlar hikoyasi + tanishuv (telefon uchun qayta qurilgan) ---------- */
+
+@media (max-width: 767.98px) {
+  /* inshootlar: rasm + gorizontal bosqichlar + faol tavsif = bitta ekran */
+  .fac-story .img-frame {
+    height: clamp(150px, 40vw, 200px);
+    max-height: 200px;
+    margin-bottom: 1rem;
+  }
+
+  .fac-steps {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.6rem;
+    margin-inline: calc(var(--m-pad) * -1);
+    padding: 0.15rem var(--m-pad) 0.7rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--m-pad);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 26px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 26px), transparent 100%);
+  }
+
+  .fac-steps::-webkit-scrollbar { display: none; }
+
+  .fac-step {
+    flex: 0 0 min(62%, 220px);
+    min-height: auto;
+    padding: 0.75rem 0.85rem;
+    border-radius: 16px;
+    scroll-snap-align: center;
+  }
+
+  .fac-step .fac-step-title { font-size: 1rem; }
+  .fac-desc { display: none; }                 /* tavsif pastdagi panelda ko'rinadi */
+  .fac-bar { margin-top: 0.6rem; height: 3px; }
+
+  .fac-mobile-desc {
+    margin-top: 0.85rem;
+    padding: 0.85rem 0.95rem;
+    min-height: 4.4rem;
+    border-radius: 16px;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    box-shadow: var(--shadow-flat);
+    font-size: 0.93rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  /* tanishuv: rasm balandligi qisqaradi, suzuvchi karta oqimga tushadi */
+  .intro-media { aspect-ratio: 16 / 11; max-height: 240px; }
+  .intro-media img { object-position: center 42%; }
+  .intro-badge {
+    position: static;
+    margin-top: 1rem;
+    max-width: none;
+    padding: 0.95rem 1rem;
+    border-radius: 18px;
+  }
+  .intro-badge .tile-ico { width: 38px; height: 38px; }
+  .intro-badge p { font-size: 0.88rem; }
+
+  /* statistika paneli (Intro "3 ta raqam") ixcham */
+  .intro-stats { gap: 0.6rem; }
+}
+
+/* ---------- 13) "Raqamlarda" bo'limi — telefonda 2×2 ixcham panjara ---------- */
+
+@media (max-width: 767.98px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.15rem 0.9rem;
+    padding: 1.35rem 1.2rem 1.5rem;
+  }
+
+  .stat-row { gap: 0.7rem; }
+  .stat-row .tile-ico,
+  .stat-row [class*="tile-ico"] { width: 40px; height: 40px; border-radius: 12px; }
+
+  .stat-desc {
+    margin-top: 0.55rem;
+    padding-left: 0;              /* ixcham: tavsif ikonka ostidan boshlanadi */
+    font-size: 0.76rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;        /* 3 satrdan oshmaydi — balandlik barqaror */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .stats-note { padding: 1.15rem 1.2rem 1.3rem; gap: 0.85rem; }
+  .stats-note p { font-size: 0.86rem; }
+}

@@ -36,6 +36,8 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // iPhone "tepadagi tirqish" / uy indikatori uchun xavfsiz hudud
+  viewportFit: "cover",
 };
 
 /** Restores the saved theme before paint (no FOUC) + marks html.js for reveal gating. */

@@ -67,7 +67,7 @@ export function TeamSection() {
           description="Pedagoglar — maktabning asosiy qiymati. Tajribali ustozlar har bir o‘quvchining o‘sish yo‘lini birga bosib o‘tadi."
         />
 
-        <Stagger className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+        <Stagger className="rail grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
           {preview.map((p) => (
             <Reveal key={p.id} variant="flip" delay={60}>
               <PersonCard person={p} />

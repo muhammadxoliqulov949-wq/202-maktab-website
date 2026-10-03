@@ -13,7 +13,7 @@ export function Footer() {
 
       <div className="container-x">
         {/* top */}
-        <div className="grid gap-12 py-14 md:grid-cols-[1.35fr_1fr_1fr_1.2fr] md:gap-8 md:py-20">
+        <div className="foot-grid grid gap-12 py-14 md:grid-cols-[1.35fr_1fr_1fr_1.2fr] md:gap-8 md:py-20">
           <div>
             <Link href="/" className="inline-flex items-center gap-3" aria-label="202-maktab — bosh sahifa">
               <span className="grid h-[48px] w-[58px] place-items-center rounded-[15px] bg-gradient-to-br from-[color:var(--primary-soft)] to-[color:var(--primary)] shadow-[var(--shadow-btn-dark)]">
