@@ -16,7 +16,8 @@
  * auth.uid()) are emulated — see bootstrapSupabase().
  *
  * What it proves:
- *   1. the ORIGINAL broken migration fails here with the same error the user saw;
+ *   1. the ORIGINAL defect is reproduced from its own statement and rejected with
+ *      the same error the user saw;
  *   2. the fixed migration applies cleanly on a clean Phase 3 database;
  *   3. it also converges on a database left PART-migrated by that failed run;
  *   4. re-running it any number of times is a no-op (idempotency);
@@ -28,7 +29,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import { splitStatements } from "./lib/sql.mjs";
+import { splitStatements, stripComments } from "./lib/sql.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const MIG = join(ROOT, "supabase/migrations");
@@ -36,6 +37,7 @@ const FILES = ["0001_initial_schema.sql", "0002_rls.sql", "0003_storage.sql", "0
 const VERBOSE = process.argv.includes("--verbose");
 
 let passed = 0;
+let skipped = 0;
 const failures = [];
 
 function ok(name, detail = "") {
@@ -45,6 +47,10 @@ function ok(name, detail = "") {
 function fail(name, why) {
   failures.push({ name, why });
   console.error(`  ✗ ${name}\n      ${String(why).split("\n").join("\n      ")}`);
+}
+function skip(name, why) {
+  skipped++;
+  console.log(`  ! ${name} — SKIPPED: ${why}`);
 }
 async function check(name, fn) {
   try {
@@ -150,17 +156,54 @@ async function execScript(db, sql) {
   }
 }
 
-/** The broken revision as it still sits in git HEAD (before this fix). */
-function brokenMigrationFromGit() {
-  try {
-    const text = execFileSync("git", ["show", `HEAD:supabase/migrations/0004_auth.sql`], { cwd: ROOT, encoding: "utf8" });
-    return /on\s+restrict\b/i.test(text) ? text : null;
-  } catch {
-    return null;
-  }
+/**
+ * The exact defect that shipped, as a self-contained fixture — so the
+ * reproduction never depends on git history. A `git show` probe cannot carry this
+ * check on its own: the FIXED file mentions `on restrict` in the comment that
+ * explains the bug, which is exactly how the first version of this check fed
+ * itself the good file and then "proved" the bug was gone.
+ *
+ * The `admin_roles` DDL is taken from the real migration rather than restated
+ * here: an hand-copied stand-in drifted (it lacked `description`) and produced a
+ * failure about the wrong column. Same lesson as the structural tests — derive
+ * fixtures from the source of truth, do not duplicate it.
+ */
+function buildBrokenFixture() {
+  const rolesDdl = /create table if not exists admin_roles[\s\S]*?\n\);/.exec(readMigration("0004_auth.sql"));
+  assert(rolesDdl, "could not locate the admin_roles DDL to build the reproduction fixture");
+  return [
+    rolesDdl[0],
+    `insert into admin_roles (role, description, permissions) values ('admin', 'x', array['audit.read']) on conflict (role) do nothing;`,
+    // verbatim from the revision that was applied to the real project:
+    `create table if not exists admin_users (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null unique,
+  email         text not null unique,
+  role          text not null default 'admin' references admin_roles (role) on restrict,
+  is_active     boolean not null default true
+);`,
+    "create index if not exists idx_admin_users_user_id on admin_users (user_id);",
+  ].join("\n");
 }
 
-/** Open PGlite with the extensions `0001_initial_schema.sql` expects. */
+/** Best-effort: is a revision of 0004 in history that really fails to parse? */
+function brokenRevisionFromGit() {
+  try {
+    const revs = execFileSync("git", ["log", "--format=%H", "--", "supabase/migrations/0004_auth.sql"], { cwd: ROOT, encoding: "utf8" })
+      .split("\n")
+      .map((x) => x.trim())
+      .filter(Boolean);
+    for (const rev of revs) {
+      const text = execFileSync("git", ["show", `${rev}:supabase/migrations/0004_auth.sql`], { cwd: ROOT, encoding: "utf8" });
+      // Comments must be stripped first — the fix documents the bad clause.
+      if (/\bon\s+restrict\b/i.test(stripComments(text))) return { rev, text };
+    }
+  } catch {
+    /* git unavailable — the fixture check above still runs */
+  }
+  return null;
+}
+
 async function openDb() {
   const { PGlite } = await import("@electric-sql/pglite");
   let options;
@@ -200,40 +243,48 @@ async function main() {
   if (!existsSync(join(ROOT, "node_modules/@electric-sql/pglite"))) {
     console.log("! SKIP — @electric-sql/pglite is not installed (`npm ci`).");
     console.log("! This is the only gate that EXECUTES the migrations; do not ship a migration without it.");
+    console.log("! Exit 2 on purpose: a skipped gate must fail CI, not pass quietly —");
+    console.log("! that is how `on restrict` reached a real project in the first place.");
     process.exit(2);
   }
   console.log("Migration execution check — real PostgreSQL via PGlite (Supabase objects emulated)\n");
 
-  const broken = brokenMigrationFromGit();
+  const broken = brokenRevisionFromGit();
 
-  /* A. reproduce the reported failure */
+  console.log("A. the reported failure (reproduced from the original statement)");
+  await check("PostgreSQL rejects `references … on restrict`", async () => {
+    const db = await freshDb();
+    const r = await runFile(db, buildBrokenFixture());
+    assert(r.errors.length > 0, "the broken form must be rejected by real PostgreSQL, but it applied");
+    const e = r.errors[0];
+    assert(/syntax error at or near "restrict"/i.test(e.message), `expected the user-facing error, got: ${e.message}`);
+    assert(await tableExists(db, "admin_roles"), "statements before the failure must have run");
+    assert(!(await tableExists(db, "admin_users")), "statements after the failure must NOT have run");
+    await db.close();
+    return `${e.message} — aborted at statement ${r.applied + 1}/${r.total}`;
+  });
+  await check("the fixed migration converges from that part-applied state", async () => {
+    const db = await freshDb();
+    await runFile(db, buildBrokenFixture()); // leave admin_roles without admin_users
+    const r = await runFile(db, readMigration("0004_auth.sql"));
+    assert(r.errors.length === 0, `re-running 0004 must recover, got: ${JSON.stringify(r.errors[0])}`);
+    assert(await tableExists(db, "admin_users"), "admin_users must exist after the fixed run");
+    const fk = await db.query(`select confdeltype from pg_constraint where conname = 'admin_users_role_fkey'`);
+    assert(fk.rows.length === 1 && fk.rows[0].confdeltype === "r", "the RESTRICT constraint must be in place afterwards");
+    await db.close();
+    return `${r.applied}/${r.total} statements applied, admin_users_role_fkey present`;
+  });
   if (broken) {
-    console.log("A. the reported failure (git HEAD revision)");
-    await check("the broken 0004 fails on a Phase 3 database", async () => {
+    await check(`the historical revision ${broken.rev.slice(0, 7)} is what failed in the editor`, async () => {
       const db = await freshDb();
-      const r = await runFile(db, broken);
-      assert(r.errors.length > 0, "expected the broken migration to FAIL, but it applied cleanly");
-      const e = r.errors[0];
-      assert(/syntax error at or near "restrict"/i.test(e.message), `expected the exact user-facing error, got: ${e.message}`);
-      return `${e.message} (line ${e.line}, statement ${r.applied + 1}/${r.total})`;
-    });
-    await check("that failure leaves the database PART-applied (the reason convergence matters)", async () => {
-      const db = await freshDb();
-      await runFile(db, broken);
-      assert(await tableExists(db, "admin_roles"), "admin_roles is created before the bad statement");
-      assert(!(await tableExists(db, "admin_users")), "admin_users must NOT exist after the aborted run");
-      return "admin_roles present, admin_users absent — exactly the state the real project is in";
-    });
-    await check("the fixed migration converges on that part-applied state", async () => {
-      const db = await freshDb();
-      await runFile(db, broken);
-      const r = await runFile(db, readMigration("0004_auth.sql"));
-      assert(r.errors.length === 0, `re-running 0004 must recover, got: ${JSON.stringify(r.errors[0])}`);
-      assert(await tableExists(db, "admin_users"), "admin_users must exist after the fixed run");
-      return `${r.applied}/${r.total} statements applied with no error`;
+      const r = await runFile(db, broken.text);
+      assert(r.errors.length > 0, "expected the historical revision to fail");
+      assert(/syntax error at or near "restrict"/i.test(r.errors[0].message), r.errors[0].message);
+      await db.close();
+      return "same error the operator saw, same abort point";
     });
   } else {
-    console.log("A. skipped — git HEAD no longer contains the broken revision (already merged)");
+    skip("historical revision probe", "no revision of 0004 containing the bad clause is reachable from this clone");
   }
 
   /* B. clean apply + idempotency */
@@ -508,7 +559,7 @@ async function main() {
   });
 
   /* ------------------------------------------------------------------ */
-  console.log(`\n${failures.length === 0 ? "✓" : "✗"} ${passed} check(s) passed, ${failures.length} failed — executed on PostgreSQL 18 (PGlite)`);
+  console.log(`\n${failures.length === 0 ? "✓" : "✗"} ${passed} check(s) passed, ${failures.length} failed${skipped ? `, ${skipped} skipped` : ""} — executed on PostgreSQL 18 (PGlite)`);
   if (failures.length) {
     console.error("\nFailed:");
     for (const f of failures) console.error(`  • ${f.name}: ${String(f.why).split("\n")[0]}`);
