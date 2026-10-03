@@ -2064,14 +2064,76 @@ select.field {
     transform: scale(0.94);
   }
 
-  /* kursor ostidagi bo'lim: 3D kattalashadi + olovrang */
-  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover {
+  /* kursor ostidagi bo'lim: 3D kattalashadi + olovrang.
+     MUHIM: yuqoridagi `[data-tone="over-media"] ... .nav-link:hover` (oq matn)
+     qoidasi kuchliroq; shuning uchun bu yerda ataylab aniqroq selektorlar —
+     aks holda matn oq bo'lib qoladi (haqiqiy xato shu edi). */
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover,
+  .nav-shell.scrolled nav[aria-label="Asosiy menyu"] .nav-link:hover,
+  .nav-shell[data-tone="solid"] nav[aria-label="Asosiy menyu"] .nav-link:hover,
+  .nav-shell[data-tone="over-media"]:not(.scrolled) nav[aria-label="Asosiy menyu"] .nav-link:hover,
+  .nav-shell[data-tone="over-media"]:not(.scrolled) nav[aria-label="Asosiy menyu"] .nav-link[aria-current="page"]:hover {
     filter: none;
     opacity: 1;
     color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
     transform: perspective(720px) translateZ(52px) scale(1.18) rotateX(-4deg);
-    text-shadow: 0 8px 26px rgba(255, 106, 0, 0.55), 0 0 14px rgba(255, 138, 43, 0.4);
-    background: transparent;
+    text-shadow: 0 8px 26px rgba(255, 106, 0, 0.55), 0 0 14px rgba(255, 138, 43, 0.45);
+  }
+
+  /* kursor ostidagi bo'lim atrofida aylanuvchi olov halqasi */
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link {
+    isolation: isolate;
+    border-radius: 14px;
+  }
+
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 2;
+    background: conic-gradient(
+      from var(--ring-angle),
+      transparent 0deg,
+      transparent 34deg,
+      rgba(255, 122, 26, 0.35) 68deg,
+      #ff6a00 104deg,
+      #ffd7a3 122deg,
+      #ff6a00 140deg,
+      rgba(255, 122, 26, 0.35) 176deg,
+      transparent 210deg,
+      transparent 360deg
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    filter: drop-shadow(0 0 7px rgba(255, 106, 0, 0.6));
+    transition: opacity 0.3s var(--ease);
+  }
+
+  .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover::before {
+    opacity: 1;
+    animation: ringSweep 1.9s linear infinite;
+  }
+
+  .nav-shell:not(.scrolled) nav[aria-label="Asosiy menyu"] .nav-link::before {
+    background: conic-gradient(
+      from var(--ring-angle),
+      transparent 0deg,
+      transparent 34deg,
+      rgba(255, 200, 150, 0.35) 68deg,
+      #ff8a2b 104deg,
+      #ffe6c9 122deg,
+      #ff8a2b 140deg,
+      rgba(255, 200, 150, 0.3) 176deg,
+      transparent 210deg,
+      transparent 360deg
+    );
   }
 
   .nav-shell nav[aria-label="Asosiy menyu"] .nav-link:hover::after {
