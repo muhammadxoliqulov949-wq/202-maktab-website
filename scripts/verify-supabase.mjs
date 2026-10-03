@@ -203,6 +203,19 @@ try {
   const applied = await applyMigration("0004_auth.sql");
   if (applied) check("migratsiya 0004_auth.sql qo'llandi", applied.ok, applied.detail ?? "Management API orqali");
 
+  /* ============ 0b) oldingi yugurish qoldiqlarini tozalash ============
+   * Agar avvalgi yugurish admin sessiyasi yo'qligi sababli to'xtab qolgan
+   * bo'lsa, "CI Smoke" murojaati bazada qolib ketadi va aniq-son tekshiruvi
+   * noto'g'ri yiqiladi. Skriptni o'z-o'zini tiklaydigan qilamiz. */
+  {
+    const stale = await rest("contact_submissions", { qs: "select=id,name&name=eq.CI Smoke" });
+    const rows = Array.isArray(stale.json) ? stale.json : [];
+    if (rows.length) {
+      await rest("contact_submissions", { method: "DELETE", qs: "name=eq.CI Smoke" });
+      console.log(`· oldingi yugurishdan qolgan ${rows.length} ta "CI Smoke" murojaati tozalandi`);
+    }
+  }
+
   /* ============ 1) jadvallar ============ */
   console.log(`\n── Supabase REST tekshiruvi: ${new URL(SUPA).host}\n`);
   const EXPECTED = {
