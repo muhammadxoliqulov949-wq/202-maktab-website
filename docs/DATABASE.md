@@ -19,8 +19,8 @@ Frontend komponentlar hech qachon Supabase'ga to‘g‘ridan-to‘g‘ri ulanmay
 
 > **Tarmoq cheklovi:** ba’zi hosting/sandbox muhitlarida `*.supabase.co`ga chiqish yopiq bo‘ladi. Bunday holda migratsiya+seedni dashboard SQL Editor orqali qo‘llang (kalitlar kerak emas), so‘ng ilova Supabase’ga yetadigan muhitda ishga tushiring.
 
-1. **Migratsiya:** Dashboard → **SQL Editor** → `supabase/APPLY-ALL.sql` kontentini paste → **Run**. Natija: 15 jadval, indekslar, RLS, `media` bucket.
-2. **Seed:** SQL Editor → `supabase/SEED.sql` kontentini paste → **Run**. Oxiridagi TEKSHIRUV so‘rovi jadval/ma’lumot sonlarini chiqaradi (kutilgan: 15 jadval, 6 yangilik, 16 jamoa, 13 galereya…).
+1. **Migratsiya:** Dashboard → **SQL Editor** → `supabase/APPLY-ALL.sql` kontentini paste → **Run**. Natija: 17 jadval (Phase 3: 15 + Phase 4: `admin_roles`, `admin_users`), indekslar, RLS, `media` bucket.
+2. **Seed:** SQL Editor → `supabase/SEED.sql` kontentini paste → **Run**. Oxiridagi TEKSHIRUV so‘rovi jadval/ma’lumot sonlarini chiqaradi (kutilgan: 17 jadval, 6 yangilik, 16 jamoa, 13 galereya… — `npm run verify:migrations` shu sonlarni real PostgreSQL'da tekshiradi).
 3. Fayllarni qayta generatsiya qilish: `npm run db:seed:sql` (src/data o‘zgarsa).
 
 ### 1b. CLI/lokal yo‘l (Supabase’ga to‘g‘ridan-to‘g‘ri tarmoq bor bo‘lsa)
@@ -73,12 +73,14 @@ Jadval ro‘yxati, ID konventsiyalari va indekslar → `supabase/README.md` jadv
 - Service-role kaliti faqat serverda (`import "server-only"` — client bundle'ga kirsa build xato beradi). Brauzerga hech qachon chiqmaydi.
 - `contact_submissions` va `admin_audit_logs` public API'da umuman yo‘q (faqat `/api/v1/admin/*`).
 - Public API draft/arxiv ajratishini repositoriyda majburlaydi.
-- Admin API dev-token gate: `ADMIN_DEV_TOKEN` bo‘lsa — `x-admin-dev-token` sarlavhasi talab qilinadi; production'da tokensiz admin API **o‘chirilgan** (503).
+- Admin API: Supabase Auth sessiyasi + `admin_users` (aktivlik) + `admin_roles.permissions` (rol ruxsati) + CSRF double-submit. Har bir handler mustaqil tekshiradi.
 
-**Phase 4'da bo‘ladigan (halol ro‘yxat, soxta policy yo‘q):**
-- Real autentifikatsiya, sessiyalar, parol siyosati, rollar/ruxsatlar, MFA maslahati
-- Admin uchun aniq RLS policy’lar (agar to‘g‘ridan-to‘g‘ri PostgREST admin access kerak bo‘lsa)
-- Storage yuklash policy’lari
+**Phase 4'da qo‘shilgan:**
+- Real autentifikatsiya (Supabase Auth), HttpOnly sessiya cookie'lari, login rate limiting
+- `admin_users` / `admin_roles` — database-backed rol/ruxsat modeli
+- Tor RLS policy’lar: `admin_users_select_self`, `admin_roles_select_active_admin`
+- Storage policy’lari: `media` bucket'ni yozish/o‘chirish faqat faol admin JWT'si bilan
+- `admin_audit_logs` — haqiqiy `admin_user_id` + append-only trigger
 
 ## 5. Cache integratsiyasi
 
@@ -96,23 +98,31 @@ O‘qish: `Service → Cache (cache-aside) → Repository`. Admin mutatsiyasi: `
 
 ## 6. Storage arxitekturasi
 
-- Supabase Storage **`media`** bucket (public read; yozish faqat service-role).
-- Bazada `media_assets` — metadata (file_name, storage_path, public_url, mime, size, width/height, duration, alt).
-- Yuklash pipeline'i Phase 4/5 — hozir poydevor (bucket + admin media metadata sahifasi). Hozirgi media static URL konventsiyasida (`/images/...`, `/video/...`), hech narsa DB'ga ko‘chirilmagan.
+- Supabase Storage **`media`** bucket: public read; yozish/update/delete faqat **faol admin JWT'si** bilan (`media_admin_write` / `media_admin_update` / `media_admin_delete` policy’lari).
+- Bazada `media_assets` — metadata (file_name, storage_path, public_url, mime, size, width/height, duration, alt, `uploaded_by`).
+- Yuklash: `POST /api/v1/admin/media` (multipart). MIME allow-list + kengaytma mosligi + 8 MB limit; obyekt yo‘li serverda yaratiladi (`uploads/YYYY/MM/<uuid>.<ext>`), mijoz fayl nomi ishlatilmaydi.
+- Hozirgi sayt mediasi static URL konventsiyasida (`/images/...`, `/video/...`) qoladi — hech narsa DB'ga ko‘chirilmagan.
 
 ## 7. Sinovlar
 
 ```bash
-npm run test        # 33 public API + 21 admin test
-npm run test:full   # build + testlar
-npm run db:seed:dry # seed oldindan ko‘rish
+npm run build             # testlar build qilingan serverni ishga tushiradi
+npm test                  # 83 test: public API + admin CRUD + Phase 4 auth
+npm run verify:supabase   # HAQIQIY Supabase loyihasiga qarshi (CI)
+npm run check:secrets     # working tree + git history skaneri
+npm run db:seed:dry       # seed oldindan ko‘rish
 ```
 
-Qamrov: gate (401/503), CRUD, draft/public separation, duplicate slug 409, archive/hard delete, reorder, settings/contact-info + cache invalidation ta’siri, murojaatlar (new → inbox, honeypot → spam, status → delete), audit yozuvlari, validatsiya 422.
+Qamrov: CRUD, draft/public separation, duplicate slug 409, archive/hard delete, reorder, settings/contact-info + cache invalidation ta’siri, murojaatlar (new → inbox, honeypot → spam, status → delete), audit yozuvlari, validatsiya 422, hamda Phase 4 auth: login (200/401/403/422), `/admin` redirect/403, API 401/403, sessiya refresh/logout, CSRF, dev-token regressiyasi.
 
-## 8. Phase 4 talablari (keyingi bosqich uchun tayyorlik)
+## 8. Phase 4'da qo‘shilgan jadvallar
 
-- `admin_audit_logs.admin_identifier` — hozir `"dev-token"` yoki `null` (soxta identifikator YO‘Q); Phase 4 real auth ID bog‘laydi.
-- Admin UI token prompti Phase 4 login sahifasi bilan almasanadi (`/admin` middleware bilan himoyalanadi).
-- Redis cache provider va BullMQ queue interfeyslari Phase 2'dan tayyor — kerak bo‘lsa ulanadi.
-- Storage yuklash + media_assets metadata yozish — Phase 4/5.
+| Jadval | Maqsad |
+|---|---|
+| `admin_roles` | Rol → `permissions text[]` katalogi. `admin` roli seeded. Yangi rol qo‘shish = `INSERT`, kod o‘zgarmaydi |
+| `admin_users` | `auth.users.id` ↔ rol + `is_active` + `last_login_at`. Parol saqlanmaydi |
+
+`admin_audit_logs`ga qo‘shildi: `admin_user_id uuid`, `admin_email text`, `ip_address text`
+(eski `admin_identifier` ustuni Phase 3 yozuvlari uchun saqlanib qolgan). UPDATE/DELETE trigger bilan taqiqlangan.
+
+Batafsil autentifikatsiya/RLS hujjati: [`AUTH.md`](AUTH.md).

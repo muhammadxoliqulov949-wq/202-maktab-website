@@ -9,11 +9,13 @@ import type {
   AdminStatRepository,
   AdminStatusFilter,
   AdminTeamRepository,
+  AdminUserRepository,
   AuditRepository,
   ContactSubmissionRepository,
 } from "@/server/repositories/interfaces";
 import type { Paginated } from "@/server/types/api";
 import type {
+  AdminUserRow,
   AuditRow,
   ContactInfoRow,
   FaqRow,
@@ -28,6 +30,7 @@ import type {
   TeamRow,
 } from "@/server/repositories/types";
 import { getStore, touch } from "@/server/repositories/store";
+import { PERMISSIONS } from "@/server/auth/permissions";
 import { paginate } from "@/server/repositories/json/news.repository";
 
 /**
@@ -241,6 +244,63 @@ export const jsonAuditRepository: AuditRepository = {
   },
   async recent(n) {
     return getStore().audit.slice(0, n);
+  },
+};
+
+/* ---------------- admin users (Phase 4, local-dev mirror) ---------------- */
+
+export const jsonAdminUserRepository: AdminUserRepository = {
+  async byUserId(userId) {
+    return getStore().adminUsers.find((r) => r.userId === userId) ?? null;
+  },
+  list(q) {
+    const rows = [...getStore().adminUsers].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return Promise.resolve(paginate(rows, q.page, q.limit));
+  },
+  async create(row) {
+    const existing = getStore().adminUsers.find((r) => r.userId === row.userId);
+    if (existing) return existing;
+    const created: AdminUserRow = {
+      id: `au-${randomUUID().slice(0, 8)}`,
+      userId: row.userId,
+      email: row.email,
+      role: row.role,
+      isActive: row.isActive,
+      permissions: [...PERMISSIONS],
+      createdAt: t(),
+      updatedAt: t(),
+      lastLoginAt: null,
+    };
+    getStore().adminUsers.unshift(created);
+    return created;
+  },
+  async setActive(id, isActive) {
+    const row = getStore().adminUsers.find((r) => r.id === id);
+    if (!row) return null;
+    row.isActive = isActive;
+    row.updatedAt = t();
+    return row;
+  },
+  async setRole(id, role) {
+    const row = getStore().adminUsers.find((r) => r.id === id);
+    if (!row) return null;
+    row.role = role;
+    row.updatedAt = t();
+    return row;
+  },
+  async touchLogin(userId) {
+    const row = getStore().adminUsers.find((r) => r.userId === userId);
+    if (row) row.lastLoginAt = t();
+  },
+  async remove(id) {
+    const rows = getStore().adminUsers;
+    const i = rows.findIndex((r) => r.id === id);
+    if (i === -1) return false;
+    rows.splice(i, 1);
+    return true;
+  },
+  async roles() {
+    return [{ role: "admin", description: "Full administrative access to the 202-maktab CMS.", permissions: [...PERMISSIONS] }];
   },
 };
 

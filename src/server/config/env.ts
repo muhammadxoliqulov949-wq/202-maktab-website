@@ -31,6 +31,9 @@ const envSchema = z.object({
   RATE_LIMIT_SEARCH_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_CONTACT_MAX: z.coerce.number().int().positive().default(5),
   RATE_LIMIT_CONTACT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  /** ---- Phase 4: admin login brute-force protection ---- */
+  RATE_LIMIT_LOGIN_MAX: z.coerce.number().int().positive().default(10),
+  RATE_LIMIT_LOGIN_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
 
   /** spam filter: null | heuristic */
   SPAM_FILTER: z.enum(["null", "heuristic"]).default("heuristic"),
@@ -42,11 +45,32 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
-  /** ---- Phase 3: development-only admin access (NOT production auth) ----
-   * When set, admin API requires header `x-admin-dev-token` to equal this.
-   * Production without this value disables the admin API entirely (503).
-   * Phase 4 replaces this with real authentication. */
-  ADMIN_DEV_TOKEN: z.string().min(16).optional(),
+  /** ---- Phase 4: authentication ---- */
+  /**
+   * Anon (publishable) apikey used by the SSR auth client for
+   * signInWithPassword / getUser / signOut. Server-side only in this app —
+   * nothing in the browser talks to PostgREST directly.
+   * Optional: when absent the server falls back to SUPABASE_SERVICE_ROLE_KEY
+   * for *auth calls only* and logs a one-time warning.
+   */
+  SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  /**
+   * Public values. Consumed by src/lib/supabase/browser.ts and as a fallback
+   * for middleware. Both are publishable by design; neither grants DB access
+   * (RLS default-deny) and neither is a secret.
+   */
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  /**
+   * LOCAL DEV / TEST FIXTURE ONLY — ignored unless DATA_PROVIDER != supabase.
+   * JSON array of `{ userId, email, role?, isActive? }` seeding the in-memory
+   * admin_users table. Contains NO credentials (passwords live in Supabase
+   * Auth), so it can never grant access on its own.
+   */
+  ADMIN_USERS_SEED: z.string().optional(),
+  /** Media upload cap (bytes). */
+  MEDIA_MAX_BYTES: z.coerce.number().int().positive().default(8 * 1024 * 1024),
+
   RATE_LIMIT_ADMIN_MAX: z.coerce.number().int().positive().default(120),
   RATE_LIMIT_ADMIN_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
 })
@@ -60,15 +84,35 @@ const envSchema = z.object({
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["SUPABASE_SERVICE_ROLE_KEY"], message: "required when DATA_PROVIDER=supabase" });
       }
     }
+    // Authentication is impossible without a project URL — but only complain
+    // when the operator asked for a real database (json mode is dev/test and
+    // points SUPABASE_URL at a test double or nowhere at all).
+    if (env.DATA_PROVIDER === "supabase" && !env.SUPABASE_URL) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["SUPABASE_URL"], message: "required for Supabase Auth (Phase 4)" });
+    }
   });
 
 export type Env = z.infer<typeof envSchema>;
 
 let cached: Env | null = null;
 
+/**
+ * CI systems (GitHub Actions included) expand a missing secret to an EMPTY
+ * STRING rather than leaving the variable unset, which would fail
+ * `.min(1)` / `.url()` on optional fields. Treat blank as absent so an unset
+ * optional secret never crashes the process at boot.
+ */
+function cleanEnv(source: NodeJS.ProcessEnv): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(source)) {
+    if (typeof v === "string" && v.trim() !== "") out[k] = v;
+  }
+  return out;
+}
+
 export function getEnv(): Env {
   if (cached) return cached;
-  const parsed = envSchema.safeParse(process.env);
+  const parsed = envSchema.safeParse(cleanEnv(process.env));
   if (!parsed.success) {
     // Startup validation failure — fail loudly and safely (no secret values).
     const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");

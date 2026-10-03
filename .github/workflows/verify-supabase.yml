@@ -1,18 +1,42 @@
-name: Verify Supabase (Phase 3)
+name: Verify Supabase (Phase 3 + 4)
 
-# Qo'lda ishga tushiriladi: Actions → Verify Supabase → Run workflow
-# Talab: repo secret'larida SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
-# va Supabase'da migratsiyalar + seed qo'llanilgan bo'lsin.
+# Ishga tushishi:
+#   • har bir push (branch'dan qat'i nazar)
+#   • qo'lda: Actions → Verify Supabase → Run workflow
+#
+# Talab: repo secret'larida
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY   (majburiy)
+#   SUPABASE_ANON_KEY                         (ixtiyoriy, tavsiya etiladi —
+#                                              bo'lmasa RLS testlari qisqaradi
+#                                              va auth service-key fallback'iga o'tadi)
+#   SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF
+#                                             (ixtiyoriy — 0004_auth.sql ni
+#                                              avtomatik qo'llash uchun)
+# va Supabase'da migratsiyalar (0001–0004) + seed qo'llanilgan bo'lsin.
+#
+# SQL darvozasi (check-sql + verify-migrations) Supabase hisobiga ulanmaydi:
+# migratsiya fayllarini PGlite'dagi haqiqiy PostgreSQL'da bajaradi. Shu
+# sababli u secret'siz ham ishlaydi va build'dan oldin turadi.
+#
+# Maxfiylik: hech bir qadam secret qiymatini logga chiqarmaydi.
 
 on:
   workflow_dispatch:
+  push:
+
+concurrency:
+  group: verify-supabase-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # check:secrets tarixni ham skaner qiladi
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -22,16 +46,39 @@ jobs:
       - name: Install
         run: npm ci --no-audit --no-fund
 
+      - name: SQL gate (PostgreSQL grammar + real execution)
+        # `on restrict` kabi yaroqsiz FK sintaksisi real loyihada migratsiyani
+        # qisman qo'llangan holatda qoldirgani uchun bu darvoza build'dan OLDIN
+        # ishlaydi. Ikki qatlam:
+        #   check-sql.mjs      — haqiqiy libpg_query grammatikasi + idempotency lint
+        #   verify-migrations  — migratsiyalarni REAL PostgreSQL'da bajaradi (PGlite)
+        run: |
+          node scripts/check-sql.mjs
+          node scripts/verify-migrations.mjs
+
+      - name: Secret scan (working tree + git history)
+        run: node scripts/check-secrets.mjs
+
       - name: Build
         run: npm run build
         env:
-          # build vaqti DB'ga ulanmaydi; env validatsiyasi uchun yetarli
+          # Build vaqti DB'ga ulanmaydi; env validatsiyasi uchun yetarli.
           DATA_PROVIDER: supabase
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
-      - name: Verify (real Supabase DB)
+      - name: Test (public API + admin CRUD + Phase 4 auth)
+        run: npm test
+
+      - name: Verify (real Supabase DB + real Supabase Auth)
         run: node scripts/verify-supabase.mjs
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Ixtiyoriy: berilsa, 0004_auth.sql Management API orqali avtomatik
+          # qo'llanadi (idempotent). Bo'lmasa migratsiyani SQL editor orqali
+          # qo'lda qo'llash kerak.
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}

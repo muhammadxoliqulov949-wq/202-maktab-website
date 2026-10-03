@@ -236,3 +236,21 @@ export function slugify(input: string): string {
     .slice(0, 100)
     .replace(/-+$/g, "");
 }
+
+/* ---------------- Phase 4: admin user management ---------------- */
+
+/** POST /api/v1/admin/admin-users — link an existing Supabase Auth user to a role. */
+export const adminUserGrantSchema = z.object({
+  userId: z.string().trim().uuid("userId must be a Supabase Auth UUID"),
+  email: z.string().trim().min(3).max(254).email("Enter a valid email address"),
+  role: z.string().trim().min(1).max(40).default("admin"),
+  isActive: z.boolean().default(true),
+});
+
+/** PATCH /api/v1/admin/admin-users/:id */
+export const adminUserPatchSchema = z
+  .object({
+    isActive: z.boolean().optional(),
+    role: z.string().trim().min(1).max(40).optional(),
+  })
+  .refine((v) => v.isActive !== undefined || v.role !== undefined, { message: "Nothing to update" });

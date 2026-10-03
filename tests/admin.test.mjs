@@ -1,97 +1,50 @@
 /**
- * Phase 3 ADMIN API test suite (node:test, zero deps).
- * Boots a production server on port 3201 with DATA_PROVIDER=json (default)
- * and a development-only admin token, then verifies:
- *   admin gate (401/503), dashboard counts, news CRUD + draft/public
- *   separation + duplicate slug (409) + archive, collection CRUD + reorder,
- *   settings/contact-info updates (with cache invalidation), contact
- *   submissions inbox (new/spam/status/delete), audit trail, validation.
+ * ADMIN API test suite (node:test, zero deps).
+ *
+ * Boots a production server on port 3201 with DATA_PROVIDER=json plus a local
+ * Supabase Auth double (tests/helpers/mock-supabase-auth.mjs), signs in as a
+ * real admin through POST /api/v1/auth/login, and then verifies the CMS:
+ *   dashboard counts, news CRUD + draft/public separation + duplicate slug
+ *   (409) + archive, collection CRUD + reorder, settings/contact-info updates
+ *   (with cache invalidation), contact submissions inbox, audit trail,
+ *   validation and the media foundation.
+ *
+ * Authentication/authorization scenarios (401/403/CSRF/session/dev-token
+ * regression) live in tests/auth.test.mjs.
  *
  * Run: node --test tests/admin.test.mjs   (requires `npm run build` first)
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { CookieJar, adminHeaders, login, startMockAuth, startServer, stopServer, testEnv, TEST_USERS, waitReady } from "./helpers/server.mjs";
 
 const PORT = 3201;
 const BASE = `http://127.0.0.1:${PORT}`;
-const TOKEN = "test-admin-dev-token-1234";
-const H = { "x-admin-dev-token": TOKEN, "content-type": "application/json" };
 let server;
-
-async function startServer() {
-  const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(PORT)], {
-    cwd: new URL("..", import.meta.url).pathname,
-    env: {
-      ...process.env,
-      NODE_ENV: "production",
-      ADMIN_DEV_TOKEN: TOKEN,
-      RATE_LIMIT_ADMIN_MAX: "100000",
-      RATE_LIMIT_PUBLIC_READ_MAX: "100000",
-      RATE_LIMIT_CONTACT_MAX: "1000",
-    },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  child.stdout.on("data", (d) => process.stdout.write(`[srv] ${d}`));
-  child.stderr.on("data", (d) => process.stderr.write(`[srv!] ${d}`));
-  const deadline = Date.now() + 30_000;
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/api/v1/health`);
-      if (res.ok) return child;
-    } catch {
-      /* not ready yet */
-    }
-    await new Promise((r) => setTimeout(r, 400));
-  }
-  child.kill("SIGKILL");
-  throw new Error("Server failed to start within 30s");
-}
+let auth;
+let jar = new CookieJar();
 
 before(async () => {
-  server = await startServer();
+  auth = startMockAuth();
+  await auth.start();
+  server = startServer(PORT, testEnv());
+  const ready = await waitReady(BASE, server);
+  if (!ready) throw new Error("Server failed to start within 45s");
+
+  const res = await login(BASE, TEST_USERS.admin.email, TEST_USERS.admin.password);
+  jar = res.jar;
+  assert.equal(res.res.status, 200, `admin login should succeed, got ${res.res.status}`);
 });
 
-after(() => {
-  if (server) {
-    server.removeAllListeners();
-    server.stdout.destroy();
-    server.stderr.destroy();
-    server.kill("SIGTERM");
-    setTimeout(() => {
-      if (!server.killed) server.kill("SIGKILL");
-      server.unref();
-    }, 1500);
-  }
+after(async () => {
+  stopServer(server);
+  await auth?.stop();
 });
 
-const api = async (path, opts = {}) => fetch(`${BASE}${path}`, { ...opts, headers: { ...H, ...(opts.headers ?? {}) } });
+const api = async (path, opts = {}) =>
+  fetch(`${BASE}${path}`, { ...opts, headers: { ...adminHeaders(jar), ...(opts.headers ?? {}) } });
 const json = async (res) => await res.json();
 const pub = async (path) => (await fetch(`${BASE}${path}`)).json();
-
-/* ---------------- gate ---------------- */
-
-test("admin API rejects missing token (401)", async () => {
-  const res = await fetch(`${BASE}/api/v1/admin/dashboard`);
-  assert.equal(res.status, 401);
-  const body = await res.json();
-  assert.equal(body.error.code, "UNAUTHORIZED");
-});
-
-test("admin API rejects wrong token (401)", async () => {
-  const res = await fetch(`${BASE}/api/v1/admin/dashboard`, { headers: { "x-admin-dev-token": "wrong-wrong-wrong" } });
-  assert.equal(res.status, 401);
-});
-
-test("dashboard returns real seed counts", async () => {
-  const res = await api("/api/v1/admin/dashboard");
-  assert.equal(res.status, 200);
-  const body = await json(res);
-  assert.equal(body.data.counts.newsPublished, 6);
-  assert.equal(body.data.counts.newsDraft, 0);
-  assert.equal(body.data.counts.team > 0, true);
-  assert.equal(body.data.counts.faqs > 0, true);
-});
 
 /* ---------------- news CRUD ---------------- */
 

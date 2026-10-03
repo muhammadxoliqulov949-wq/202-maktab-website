@@ -16,6 +16,7 @@ import {
   jsonAdminSettingsRepository,
   jsonAdminStatRepository,
   jsonAdminTeamRepository,
+  jsonAdminUserRepository,
   jsonAuditRepository,
   jsonSubmissionsRepository,
 } from "@/server/repositories/json/admin.repositories";
@@ -33,6 +34,7 @@ import {
   supabaseAuditRepository,
   supabaseSubmissionsRepository,
 } from "@/server/repositories/supabase/collections.repository";
+import { supabaseAdminUserRepository } from "@/server/repositories/supabase/adminUsers.repository";
 
 /**
  * Controlled data-provider switch (Phase 3).
@@ -51,6 +53,7 @@ const jsonProviders: DataProviders = {
   content: jsonContentRepository,
   submissions: jsonSubmissionsRepository,
   audit: jsonAuditRepository,
+  adminUsers: jsonAdminUserRepository,
   adminNews: jsonAdminNewsRepository,
   adminTeam: jsonAdminTeamRepository,
   adminGallery: jsonAdminGalleryRepository,
@@ -69,6 +72,7 @@ const supabaseProviders: DataProviders = {
   content: supabaseContentRepository,
   submissions: supabaseSubmissionsRepository,
   audit: supabaseAuditRepository,
+  adminUsers: supabaseAdminUserRepository,
   adminNews: supabaseAdminNewsRepository,
   adminTeam: supabaseAdminTeamRepository,
   adminGallery: supabaseAdminGalleryRepository,
