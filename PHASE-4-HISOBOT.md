@@ -307,7 +307,23 @@ qo'shildi (~30 MB, transitive bog'liqliksiz) — `--no-save` bilan qo'ymaslik
 kerak: u boshqa ixtiyoriy paketni **o'chirib** qo'yadi va darvoza jimgina
 kuchsizlanadi. Ikkalasi ham faqat test/CI uchun, ilova bundle'iga kirmaydi.
 
-### 12.5 SQL Editor'da qayta ishga tushirish kerakmi?
+### 12.5 Darvozalar CI'da ham yashil (isbot)
+
+`e027016` uchun CI run [#37129931379](https://github.com/muhammadxoliqulov949-wq/202-maktab-website/actions/runs/37129931379):
+
+| Qadam | Natija |
+|---|---|
+| Install (`npm ci`) | ✅ |
+| **SQL gate (grammatika + real PostgreSQL'da bajarish)** | ✅ **yangi darvoza CI'da o'tdi** |
+| Secret scan (tree + git history) | ✅ |
+| Build | ✅ |
+| Test (98) | ✅ |
+| Verify (real Supabase) | ⚠️ 10 ta FAIL — **hammasi `admin_users`/`admin_roles`ning real loyihada hali mavjud emasligi** (HTTP 404/400/503) |
+
+Phase 3 tekshiruvlaridan bitta ham FAIL yo'q — ya'ni tuzatish va yangi darvozalar
+hech narsani buzdi, qolgan qizil belgi faqat operator qadami.
+
+### 12.6 SQL Editor'da qayta ishga tushirish kerakmi?
 
 **HA.** `0004_auth.sql` (tuzatilgan) ni qayta paste qiling — xavfsiz:
 - birinchi urinish `admin_roles`da to'xtagani uchun bazada faqat shu bor;
