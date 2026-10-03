@@ -6,9 +6,13 @@ name: Verify Supabase (Phase 3 + 4)
 #
 # Talab: repo secret'larida
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY   (majburiy)
-#   SUPABASE_ANON_KEY                         (ixtiyoriy, tavsiya etiladi —
-#                                              bo'lmasa RLS testlari qisqaradi
-#                                              va auth service-key fallback'iga o'tadi)
+#   SUPABASE_ANON_KEY                         (CI darvozasi uchun kerak — kalit
+#                                              publishable, maxfiy EMAS. Bo'lmasa
+#                                              RLS (PostgREST) tekshiruvlari
+#                                              o'tkazib yuboriladi va fail-closed
+#                                              siyosat tufayli run qizil bo'ladi;
+#                                              auth chaqiruvlari service-key
+#                                              fallback'iga o'tadi)
 #   SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF
 #                                             (ixtiyoriy — 0004_auth.sql ni
 #                                              avtomatik qo'llash uchun)

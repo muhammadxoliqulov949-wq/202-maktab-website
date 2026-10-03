@@ -25,7 +25,10 @@
  *
  * Talab: `npm run build` oldin bajarilgan bo'lsin. Muhit:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (majburiy)
- *   SUPABASE_ANON_KEY (ixtiyoriy — bo'lmasa RLS testlari qisqartiriladi)
+ *   SUPABASE_ANON_KEY — CI darvozasi uchun kerak: bo'lmasa RLS (PostgREST)
+ *   tekshiruvlari O'TKAZIB YUBORILADI va fail-closed siyosat tufayli run qizil
+ *   bo'ladi. Kalit publishable, ya'ni maxfiy emas.
+ *   Login tekshiruvlari uchun fallback: service-role kaliti (bir marta warning).
  */
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -68,9 +71,21 @@ async function applyMigration(file) {
 let phase4SchemaReady = false;
 
 const results = [];
-function check(name, ok, detail = "") {
-  results.push({ name, ok, detail });
-  console.log(`${ok ? "✓" : "✗"} ${name}${detail ? ` — ${detail}` : ""}`);
+function check(name, ok, detail = "", opts = {}) {
+  const rec = { name, ok, detail, skipped: Boolean(opts.skipped) };
+  results.push(rec);
+  const mark = ok ? "✓" : rec.skipped ? "!" : "✗";
+  console.log(`${mark} ${name}${detail ? ` — ${detail}` : ""}`);
+}
+
+/**
+ * A check that COULD NOT RUN. Counted as a failure on purpose — an unverified
+ * security property is not a passed one, and silently skipping is how a green CI
+ * can hide an untested RLS boundary. It is labelled and summarised separately, so
+ * the operator sees "configure this" rather than "the app is broken".
+ */
+function skippedCheck(name, why, howToFix) {
+  check(name, false, `${why}${howToFix ? ` — ${howToFix}` : ""}`, { skipped: true });
 }
 
 /* ---------------- Supabase REST / Auth yordamchilari ---------------- */
@@ -523,7 +538,11 @@ try {
   {
     const anonHeaders = { apikey: ANON, Authorization: `Bearer ${ANON}`, "content-type": "application/json" };
     if (!ANON) {
-      check("RLS: anonim kalit bilan shaxsiy jadvallar yopiq", false, "SUPABASE_ANON_KEY berilmagan — test o'tkazib yuborildi");
+      skippedCheck(
+        "RLS: anonim kalit bilan shaxsiy jadvallar yopiq",
+        "SUPABASE_ANON_KEY sozlanmagan — RLS darvozasi tekshirilmadi",
+        "GitHub → Settings → Secrets and variables → Actions → SUPABASE_ANON_KEY qo'shing (publishable kalit, maxfiy emas)"
+      );
     } else {
       for (const table of ["contact_submissions", "admin_audit_logs", "admin_users", "media_assets", "admin_roles", "news_articles", "site_settings"]) {
         const r = await fetch(`${SUPA}/rest/v1/${table}?select=*&limit=1`, { headers: anonHeaders });
@@ -586,13 +605,23 @@ try {
   }
 }
 
-const failed = results.filter((r) => !r.ok);
-console.log(`\n═══════ NATIJA: ${results.length - failed.length}/${results.length} tekshiruv o'tdi ═══════`);
+const failed = results.filter((r) => !r.ok && !r.skipped);
+const notRun = results.filter((r) => r.skipped);
+const passed = results.length - failed.length - notRun.length;
+console.log(`\n═══════ NATIJA: ${passed}/${results.length} o'tdi` + (failed.length ? `, ${failed.length} xato` : "") + (notRun.length ? `, ${notRun.length} o'tkazib yuborildi (fail-closed)` : "") + " ═══════");
 if (failed.length) {
   console.log("O'tmaganlar:");
   for (const f of failed) {
     console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
     if (process.env.GITHUB_ACTIONS === "true") console.log(`::error::FAIL: ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+  }
+  exitCode = 1;
+}
+if (notRun.length) {
+  console.log("\nTekshirib bo'lmagan (buni sozlasangiz darvoza to'liq yashil bo'ladi):");
+  for (const f of notRun) {
+    console.log(`  ! ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+    if (process.env.GITHUB_ACTIONS === "true") console.log(`::error::SKIPPED (fail-closed): ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
   }
   exitCode = 1;
 }
