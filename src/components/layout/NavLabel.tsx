@@ -1,14 +1,20 @@
 /**
  * NavLabel — tepa bardagi bo'lim nomini harflarga bo'lib chiqadi.
  *
- * Nima uchun: hover'da butun so'z emas, aynan HARFLAR ketma-ket (chapdan
- * o'ngga) 3D kattalashib, olovrang tusga kiradi — to'lqin effekti.
- * Har bir harfga `--i` (indeks), `--n` (harflar soni) va `--k` (amplituda
- * koeffitsienti) beriladi; animatsiya butunlay CSS'da (globals.css).
+ * Hover'da: harflar chapdan o'ngga ketma-ket kattalashadi. MUHIM: kattalashish
+ * `font-size` orqali bo'ladi — shuning uchun harf o'z joyini ham kengaytiradi va
+ * qo'shnilarini itarib suradi (bir-birining ustiga chiqmaydi, o'qish mumkin
+ * bo'lib qoladi).
  *
- * `--k`: unli harflar to'liq (1), undoshlar biroz kam (0.78), o'zbekcha
- * tutuq belgisi kabi qo'shimchalar yana kamroq (0.5) kattalashadi — shu
- * tufayli to'lqin tabiiy ko'rinadi.
+ * Har bir harfga beriladigan o'zgaruvchilar:
+ *   --i  indeks (navbat effekti uchun)
+ *   --n  harflar soni (kursor ketganda teskari tartib uchun)
+ *   --g  o'sish miqdori (em) — qancha katta bo'lishi
+ *   --d  burilish yo'nalishi (+1 / -1) — multfilm "sakrash" effekti
+ *
+ * `--g`: unli harflar eng katta (1), undoshlar 0.78, tutuq/apostrof 0.5
+ * koeffitsientini oladi; uzun so'zlarda umumiy o'sish biroz jilovlanadi —
+ * shunda bar cho'zilib ketmaydi.
  */
 
 import type { CSSProperties } from "react";
@@ -22,8 +28,16 @@ function amplitude(ch: string): number {
   return 0.78;
 }
 
+/** So'z uzunligiga qarab umumiy o'sish bazasi (em). */
+function growthBase(n: number): number {
+  if (n >= 10) return 0.5;
+  if (n >= 8) return 0.58;
+  return 0.68;
+}
+
 export function NavLabel({ text }: { text: string }) {
   const chars = Array.from(text);
+  const base = growthBase(chars.length);
 
   return (
     <span className="nav-label">
@@ -35,7 +49,8 @@ export function NavLabel({ text }: { text: string }) {
             {
               "--i": i,
               "--n": chars.length,
-              "--k": amplitude(ch),
+              "--g": +(amplitude(ch) * base).toFixed(2),
+              "--d": i % 2 === 0 ? -1 : 1,
             } as CSSProperties
           }
         >
