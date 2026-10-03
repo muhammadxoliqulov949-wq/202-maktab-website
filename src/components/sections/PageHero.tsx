@@ -22,7 +22,7 @@ export function PageHero({
   imageAlt?: string;
 }) {
   return (
-    <section className="relative overflow-hidden bg-[color:var(--bg-2)] pb-14 pt-[130px] sm:pb-20 sm:pt-[150px]">
+    <section data-ambient={image} className="page-hero relative overflow-hidden pb-14 pt-[130px] sm:pb-20 sm:pt-[150px]">
       <div className="absolute inset-0" aria-hidden="true">
         <Image src={image} alt={imageAlt} fill sizes="100vw" priority className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-[rgba(10,18,33,0.9)] via-[rgba(10,18,33,0.78)] to-[rgba(10,18,33,0.9)]" />

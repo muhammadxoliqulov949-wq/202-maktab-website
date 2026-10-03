@@ -5,7 +5,7 @@ import { site } from "@/data/site";
 /** SECTION 10 — Location & contact preview with prototype map. */
 export function Location() {
   return (
-    <section className="section-pad bg-[color:var(--bg-2)]" aria-label="Manzil va aloqa">
+    <section className="band section-pad" aria-label="Manzil va aloqa">
       <div className="container-x grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch lg:gap-16">
         <div className="flex flex-col justify-center">
           <Reveal variant="fade">

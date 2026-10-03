@@ -23,7 +23,7 @@ export function SectionHeader({
   if (align === "left") {
     return (
       <div className="sec-head">
-        <Reveal variant="fade">
+        <Reveal variant="tilt-l">
           <p className="eyebrow">
             <span className="sec-index mr-1">{index}</span>
             {eyebrow}
@@ -121,7 +121,7 @@ export function Intro() {
         </div>
 
         <div className="relative">
-          <Reveal variant="img" className="img-frame shimmer aspect-[4/5] max-h-[640px] w-full">
+          <Reveal variant="img" className="intro-media img-frame shimmer aspect-[4/5] max-h-[640px] w-full">
             <Image
               src="/images/intro.jpg"
               alt="Maktab koridori — tabiiy yorug‘lik va shinam o‘quv muhiti"
@@ -132,7 +132,7 @@ export function Intro() {
             />
           </Reveal>
 
-          <Reveal variant="scale" delay={200} className="n absolute -bottom-7 -left-4 max-w-[260px] p-5 sm:-left-8">
+          <Reveal variant="scale" delay={200} className="intro-badge n absolute -bottom-7 -left-4 max-w-[260px] p-5 sm:-left-8">
             <div className="flex items-start gap-3.5">
               <span className="tile-ico mb-0 flex-none">
                 <Icon name="graduation" size={22} />

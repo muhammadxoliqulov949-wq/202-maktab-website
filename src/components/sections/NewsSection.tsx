@@ -10,7 +10,7 @@ export function NewsSection() {
   const [featured, ...rest] = NEWS.slice(0, 4);
 
   return (
-    <section className="section-pad bg-[color:var(--bg-2)]" aria-label="Yangiliklar va tadbirlar">
+    <section className="band section-pad" aria-label="Yangiliklar va tadbirlar">
       <div className="container-x">
         <SectionHeader
           index="08"
@@ -28,7 +28,7 @@ export function NewsSection() {
           <Reveal variant="scale">
             <Link
               href={`/news/${featured.slug}`}
-              className="mediacard group block h-full min-h-[420px]"
+              className="mediacard group block h-full min-h-[420px]" data-tilt data-tilt-strength="5"
               aria-label={featured.title}
             >
               <Image
@@ -61,7 +61,7 @@ export function NewsSection() {
           </Reveal>
 
           {/* side list */}
-          <div className="grid content-start gap-4">
+          <div className="rail grid content-start gap-4">
             {rest.map((n, i) => (
               <Reveal key={n.slug} delay={i * 90}>
                 <Link href={`/news/${n.slug}`} className="n n-card group flex items-stretch gap-0 overflow-hidden" aria-label={n.title}>

@@ -11,7 +11,7 @@ import { FACILITIES } from "@/data/facilities";
  */
 export function FacilitiesStory() {
   return (
-    <section className="section-pad bg-[color:var(--bg-2)]" aria-label="Maktab inshootlari">
+    <section className="band section-pad" aria-label="Maktab inshootlari">
       <div className="container-x">
         <div className="sec-head grid md:grid-cols-[1.2fr_0.8fr] md:items-end md:gap-16">
           <div>

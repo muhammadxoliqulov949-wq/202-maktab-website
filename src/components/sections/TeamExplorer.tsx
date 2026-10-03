@@ -68,7 +68,7 @@ export function TeamExplorer() {
 
       {/* grid */}
       {shown.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+        <div className="rail grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
           {shown.map((p) => (
             <PersonCard key={p.id} person={p} />
           ))}

@@ -69,7 +69,7 @@ export function NewsExplorer() {
           )}
 
           {/* grid */}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rail grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((n) => (
               <Link key={n.slug} href={`/news/${n.slug}`} className="n n-card group flex flex-col overflow-hidden" aria-label={n.title}>
                 <span className="img-frame img-zoom shimmer relative aspect-[16/10] !rounded-none">

@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 import { useInView } from "@/lib/motion";
 
-type RevealVariant = "up" | "fade" | "left" | "right" | "scale" | "img";
+type RevealVariant = "up" | "fade" | "left" | "right" | "scale" | "img" | "flip" | "depth" | "tilt-l" | "tilt-r";
 
 type RevealProps = {
   children: ReactNode;
@@ -26,10 +26,7 @@ export function Reveal({ children, variant = "up", delay = 0, className, as = "d
   const { ref, inView } = useInView<HTMLDivElement>(threshold ?? 0.16);
   const Tag = as;
 
-  const dataAttrs: Record<string, string> =
-    variant === "fade" || variant === "left" || variant === "right" || variant === "scale" || variant === "img"
-      ? { "data-reveal": variant }
-      : { "data-reveal": "up" };
+  const dataAttrs: Record<string, string> = { "data-reveal": variant };
 
   return (
     <Tag

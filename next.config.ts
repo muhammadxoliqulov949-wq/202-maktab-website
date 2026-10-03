@@ -8,6 +8,13 @@ import type { NextConfig } from "next";
  */
 const isDev = process.env.NODE_ENV !== "production";
 
+/**
+ * CSP frame-ancestors: production standart — 'self'.
+ * Dev/preview muhitida (masalan, sandbox iframe preview) `CSP_FRAME_ANCESTORS`
+ * env o'zgaruvchisi orqali vaqtincha yumshatish mumkin — build/CI'ga ta'sir qilmaydi.
+ */
+const frameAncestors = process.env.CSP_FRAME_ANCESTORS ?? "'self'";
+
 const csp = [
   "default-src 'self'",
   // Next.js App Router embeds inline bootstrap/RSC scripts in static HTML.
@@ -23,7 +30,7 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'self'",
+  `frame-ancestors ${frameAncestors}`,
 ].join("; ");
 
 const securityHeaders = [
@@ -36,6 +43,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Dev preview proksisi (sandbox host) uchun ruxsat; production build'ga ta'sir qilmaydi.
+  ...(isDev ? { allowedDevOrigins: ["*.e2b.app", "*.e2b.dev", "localhost", "127.0.0.1"] } : {}),
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [375, 430, 640, 750, 828, 1080, 1200, 1440, 1920, 2560],

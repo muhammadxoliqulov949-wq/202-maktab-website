@@ -20,10 +20,10 @@ export function QuickAccess() {
           description="Ota-onalar va o‘quvchilar uchun eng ko‘p murojaat qilinadigan bo‘limlar."
         />
 
-        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="rail grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {QUICK_LINKS.map((q) => (
-            <Reveal key={q.id} delay={40}>
-              <Link href={q.href} className="qlink n n-card group h-full">
+            <Reveal variant="flip" key={q.id} delay={40}>
+              <Link href={q.href} className="qlink n n-card group h-full" data-tilt data-tilt-strength="6">
                 <span className="qlink-ico">
                   <Icon name={q.icon as IconName} size={22} />
                 </span>

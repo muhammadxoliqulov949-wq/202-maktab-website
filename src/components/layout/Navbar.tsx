@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { NavLabel } from "@/components/layout/NavLabel";
 import { NAV_LINKS } from "@/data/nav";
 import { site } from "@/data/site";
 
@@ -164,21 +165,25 @@ export function Navbar() {
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
+  /* Ommaviy sahifalarning barchasida tepada qorong'i hero bor — menyu matni oq.
+     Admin panelda esa glass "solid" parda ishlatiladi. */
+  const tone = pathname?.startsWith("/admin") ? "solid" : "over-media";
+
   return (
     <>
-      <header className={`nav-shell anim-nav ${scrolled ? "scrolled" : ""}`}>
+      <header className={`nav-shell anim-nav ${scrolled ? "scrolled" : ""}`} data-tone={tone}>
         <div className="container-x">
-          <div className="flex h-[76px] items-center gap-3 lg:h-[84px]">
+          <div className="nav-row flex h-[76px] items-center gap-3 lg:h-[84px]">
             {/* brand */}
-            <Link href="/" className="group flex flex-none items-center gap-3" aria-label="202-maktab — bosh sahifa">
+            <Link href="/" className="nav-brand group flex flex-none items-center gap-3" aria-label="202-maktab — bosh sahifa">
               <span className="grid h-[46px] w-[56px] flex-none place-items-center rounded-[15px] bg-gradient-to-br from-[color:var(--primary-soft)] to-[color:var(--primary)] shadow-[var(--shadow-btn-dark)] transition-transform duration-300 group-hover:-translate-y-0.5">
                 <span className="font-display text-[1.06rem] font-extrabold tracking-tight text-[color:var(--primary-contrast)]">
                   202
                 </span>
               </span>
               <span className="hidden flex-col leading-tight min-[430px]:flex">
-                <span className="font-display text-[1.02rem] font-extrabold tracking-tight">202-maktab</span>
-                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-faint">
+                <span className="brand-name font-display text-[1.02rem] font-extrabold tracking-tight">202-maktab</span>
+                <span className="brand-sub text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-faint">
                   Chilonzor • Toshkent
                 </span>
               </span>
@@ -187,14 +192,20 @@ export function Navbar() {
             {/* desktop nav */}
             <nav className="mx-auto hidden items-center lg:flex" aria-label="Asosiy menyu">
               {NAV_LINKS.map((l) => (
-                <Link key={l.href} href={l.href} className="nav-link" aria-current={isActive(l.href) ? "page" : undefined}>
-                  {l.label}
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="nav-link"
+                  aria-label={l.label}
+                  aria-current={isActive(l.href) ? "page" : undefined}
+                >
+                  <NavLabel text={l.label} />
                 </Link>
               ))}
             </nav>
 
             {/* right cluster */}
-            <div className={`flex flex-none items-center gap-2 ${"ml-auto xl:ml-0"}`}>
+            <div className={`nav-right flex flex-none items-center gap-2 ${"ml-auto xl:ml-0"}`}>
               <div className="hidden xl:block">
                 <LocaleSwitch />
               </div>
@@ -206,7 +217,7 @@ export function Navbar() {
               <button
                 ref={toggleRef}
                 type="button"
-                className="icon-btn lg:hidden"
+                className="icon-btn nav-burger lg:hidden"
                 aria-expanded={menuOpen}
                 aria-controls="mobile-sheet"
                 aria-label={menuOpen ? "Menyuni yopish" : "Menyuni ochish"}

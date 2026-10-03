@@ -44,7 +44,7 @@ export function LifeMosaic() {
           </Reveal>
         </div>
 
-        <Stagger className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+        <Stagger className="rail grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
           {LIFE_ITEMS.map((item, i) => (
             <Reveal
               key={item.id}

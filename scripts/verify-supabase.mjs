@@ -46,7 +46,12 @@ const EXPECTED = {
   news_articles: 6,
   contact_submissions: 0,
   media_assets: 0,
-  admin_audit_logs: 0,
+  // APPEND-ONLY jurnal: admin CRUD smoke (4-bo'lim) har yugurishda audit yozuvi
+  // qoldiradi va audit-log'ni o'chirish API'si ataylab yo'q. Shu sababli aniq
+  // "0" faqat birinchi (toza) yugurishda to'g'ri; keyingi yugurishlarda bu
+  // jadval faqat o'qilishini tekshiramiz. Yozuvlarning mazmuni quyida
+  // "audit: PUBLISH yozuvi bor" tekshiruvi bilan qoplanadi.
+  admin_audit_logs: null,
 };
 
 async function tableCount(table) {
@@ -118,6 +123,8 @@ try {
     const { count, error } = await tableCount(table);
     if (error !== undefined) {
       check(`jadval: ${table}`, false, `REST xato (${error}) — migratsiya qo'llanilmagan bo'lishi mumkin`);
+    } else if (expected === null) {
+      check(`jadval: ${table}`, typeof count === "number", `${count} qator (append-only — aniq son tekshirilmaydi)`);
     } else {
       check(`jadval: ${table}`, count === expected, `${count} qator (kutilgan ${expected})`);
     }
@@ -134,8 +141,18 @@ try {
   const news = await pub("/api/v1/news");
   check("GET /api/v1/news", news.status === 200 && Array.isArray(news.body?.data), `${news.body?.data?.length ?? "?"} ta yangilik`);
   check("yangilik slug detail", (await pub("/api/v1/news/yangi-oquv-yili-2026")).status === 200);
-  const team = await pub("/api/v1/team");
-  check("GET /api/v1/team", team.status === 200 && team.body?.data?.length === 16, `${team.body?.data?.length ?? "?"} ta a'zo`);
+  // Muhim: /api/v1/team sahifalanadi (limit 1–50, default 12). Shu sababli
+  // to'liq ro'yxat faqat `limit=50` bilan olinadi; aks holda 1-sahifa (12 ta)
+  // qaytadi va 16 a'zoning oxirgi 4 tasi (p-13…p-16) tekshiruvdan chetda qoladi.
+  const team = await pub("/api/v1/team?limit=50");
+  const teamIds = new Set((team.body?.data ?? []).map((m) => m.id));
+  const missingTeam = ["p-13", "p-14", "p-15", "p-16"].filter((id) => !teamIds.has(id));
+  check(
+    "GET /api/v1/team",
+    team.status === 200 && team.body?.data?.length === 16 && team.body?.meta?.total === 16 && missingTeam.length === 0,
+    `${team.body?.data?.length ?? "?"} ta a'zo (meta.total=${team.body?.meta?.total ?? "?"}, kutilgan 16)` +
+      (missingTeam.length ? ` — yetishmayapti: ${missingTeam.join(", ")}` : "")
+  );
   const faqs = await pub("/api/v1/faqs");
   check("GET /api/v1/faqs", faqs.status === 200 && faqs.body?.data?.items?.length === 5);
   const cfg = await pub("/api/v1/site-config");
@@ -241,7 +258,11 @@ const failed = results.filter((r) => !r.ok);
 console.log(`\n═══════ NATIJA: ${results.length - failed.length}/${results.length} tekshiruv o'tdi ═══════`);
 if (failed.length) {
   console.log("O'tmaganlar:");
-  for (const f of failed) console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+  for (const f of failed) {
+    console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+    // Actions'da muvaffaqiyatsiz tekshiruvni annotation sifatida ham chiqaramiz
+    if (process.env.GITHUB_ACTIONS === "true") console.log(`::error::FAIL: ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+  }
   exitCode = 1;
 }
 process.exit(exitCode);
