@@ -18,6 +18,33 @@ supabase link --project-ref <project-ref>
 supabase db push
 ```
 
+### Variant C — bir marta xato bilan qo'llanib ketgan bo'lsa
+
+SQL Editor faylni **birinchi xatoda to'xtatadi**: `0004_auth.sql`dagi sintaksis
+xatodan keyingi barcha operatorlar ishga tushmaydi — ya'ni bazada `admin_roles`
+bor, lekin `admin_users` yo'q. **Qayta o'tqazish shart emas.** migratsiya
+to'liq idempotent (`if not exists`, `drop … if exists`, `on conflict do nothing`),
+shuning uchun tuzatilgan `0004_auth.sql`ni qayta paste qilsangiz, qolgan
+qismlar qo'shiladi, bajarilganlari esa o'zgarmaydi.
+
+## Migratsiyalarni tekshirish (commit'dan oldin)
+
+```bash
+npm run check:sql          # haqiqiy PostgreSQL grammatikasi (libpg_query) + idempotency lint
+npm run verify:migrations  # migratsiyalarni REAL PostgreSQL'da bajaradi (PGlite)
+npm run test:migrations    # yuqoridagilarning doimiy test qatlami
+```
+
+| Darvoza | Nimani ushlaydi |
+|---|---|
+| `check:sql` | `on restrict` kabi yaroqsiz sintaksis (`syntax error at or near "restrict"`), qayta ishga tushirishda portshob bo'ladigan `create table/index/trigger/policy` |
+| `verify:migrations` | `CREATE` o'tib, lekin **xatti-xato ishlaydigan** hollar: FK harakatlari (RESTRICT/CASCADE/SET NULL), RLS policy'larining haqiqiy ko'rinishi, append-only trigger, Storage yozish policy'si. `admin_roles` yaratilgan, `admin_users` yaratilmagan **qisman holatdan ham tiklanishini** isbotlaydi |
+| `test:migrations` | Bugun topilgan xato klassini (FK action, idempotency, seed `do nothing`, documented no-FK audit column) doimiy qilib qaytarilmasligini kafolatlaydi |
+
+Uchala darvoza ham CI'da (`Verify Supabase` workflow) build'dan **oldin** ishlaydi
+— xato ketgan holda PR qizil bo'ladi. Bu darvozalar `0004_auth.sql`dagi
+`references admin_roles (role) on restrict` xatosidan keyin qo'shildi.
+
 ## Migratsiyalar
 
 | Fayl | Nima qiladi |

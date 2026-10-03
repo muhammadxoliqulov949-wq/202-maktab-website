@@ -19,8 +19,8 @@ Frontend komponentlar hech qachon Supabase'ga to‘g‘ridan-to‘g‘ri ulanmay
 
 > **Tarmoq cheklovi:** ba’zi hosting/sandbox muhitlarida `*.supabase.co`ga chiqish yopiq bo‘ladi. Bunday holda migratsiya+seedni dashboard SQL Editor orqali qo‘llang (kalitlar kerak emas), so‘ng ilova Supabase’ga yetadigan muhitda ishga tushiring.
 
-1. **Migratsiya:** Dashboard → **SQL Editor** → `supabase/APPLY-ALL.sql` kontentini paste → **Run**. Natija: 15 jadval, indekslar, RLS, `media` bucket.
-2. **Seed:** SQL Editor → `supabase/SEED.sql` kontentini paste → **Run**. Oxiridagi TEKSHIRUV so‘rovi jadval/ma’lumot sonlarini chiqaradi (kutilgan: 15 jadval, 6 yangilik, 16 jamoa, 13 galereya…).
+1. **Migratsiya:** Dashboard → **SQL Editor** → `supabase/APPLY-ALL.sql` kontentini paste → **Run**. Natija: 17 jadval (Phase 3: 15 + Phase 4: `admin_roles`, `admin_users`), indekslar, RLS, `media` bucket.
+2. **Seed:** SQL Editor → `supabase/SEED.sql` kontentini paste → **Run**. Oxiridagi TEKSHIRUV so‘rovi jadval/ma’lumot sonlarini chiqaradi (kutilgan: 17 jadval, 6 yangilik, 16 jamoa, 13 galereya… — `npm run verify:migrations` shu sonlarni real PostgreSQL'da tekshiradi).
 3. Fayllarni qayta generatsiya qilish: `npm run db:seed:sql` (src/data o‘zgarsa).
 
 ### 1b. CLI/lokal yo‘l (Supabase’ga to‘g‘ridan-to‘g‘ri tarmoq bor bo‘lsa)

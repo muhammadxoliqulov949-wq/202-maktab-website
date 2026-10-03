@@ -121,7 +121,10 @@ Tasdiqlovchi tekshiruvlar:
 |---|---|
 | `node scripts/check-secrets.mjs` | ✅ o'tdi (lokal + CI) |
 | `npm run build` | ✅ o'tdi (lokal + CI), Middleware 109 kB |
-| `npm test` | ✅ **83/83** (public API 21 + admin CRUD 31 + **Phase 4 auth 31**) |
+| `npx tsc --noEmit` | ✅ xatosiz |
+| `npm run check:sql` | ✅ 6 SQL fayl — haqiqiy PostgreSQL grammatikasi + idempotency lint (§12) |
+| `npm run verify:migrations` | ✅ **18/18** — migratsiyalar real PostgreSQL 18'da **bajarildi** (§12) |
+| `npm test` | ✅ **98/98** (public API 21 + admin CRUD 31 + **Phase 4 auth 31** + **migrations 15**) |
 
 Yangi `tests/auth.test.mjs` qamrovi: login (200/401/403/422, enumeration yo'q, cookie flaglari),
 `/admin` sahifa himoyasi (redirect / 403 / 403 / 200), API (401/403/403/200 — to'g'ridan-to'g'ri so'rovlar),
@@ -172,6 +175,9 @@ Ya'ni `0004_auth.sql` real loyihaga qo'llanmagan. Muhim jihat:
 Bu holatda **Phase 4 "real Supabase verification o'tdi" deb da'vo qilmayman** —
 migratsiya qo'llangach qayta ishga tushirish kerak.
 
+> **Sababi topildi va tuzatildi:** migratsiya SQL Editor'da `ERROR: 42601: syntax error
+> at or near "restrict"` bilan to'xtagan edi. Tahlil va tuzatish — §12.
+
 ## 10. Git
 
 - **Branch:** `arena/01a101bc-202-maktab-website` (main'dan; force-push/reset yo'q)
@@ -183,13 +189,18 @@ migratsiya qo'llangach qayta ishga tushirish kerak.
 
 ## 11. Qolgan yagona to'siq va cheklovlar
 
-**Majburiy (bitta qadam):** `0004_auth.sql`ni real loyihaga qo'llash.
+**Majburiy (bitta qadam):** tuzatilgan `0004_auth.sql`ni real loyihaga qo'llash.
 
 ```
-Variant A: Supabase dashboard → SQL Editor → supabase/migrations/0004_auth.sql → Run
+Variant A: Supabase dashboard → SQL Editor → supabase/migrations/0004_auth.sql kontenti → Run
 Variant B: repo secret'lariga SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF qo'shing
            (verify skript migratsiyani o'zi qo'llaydi; npm run db:migrate:apply — lokal)
 ```
+
+**Qayta o'tqazish shart emas.** Birinchi urinish `admin_roles`da to'xtagan edi
+(§12); migratsiya to'liq idempotent bo'lgani uchun tuzatilgan faylni qayta
+paste qilish shu yarim holatdan ham, toza Phase 3 bazasidan ham to'g'ri
+natijaga keltiradi — bu PGlite'da **tekshirilgan** (`npm run verify:migrations`).
 
 Keyin `Verify Supabase` workflow'ini qayta ishga tushiring — qolgan barcha tekshiruv shu.
 
@@ -198,7 +209,120 @@ chaqiruvlari uchun service-key fallback'iga o'tadi (bir marta warning log qiladi
 anon-kalit bilan RLS tekshiruvlari o'tkazib yuboriladi.
 
 **Ma'lum cheklovlar (halol ro'yxat):**
-- `admin_audit_logs` append-only trigger'i `postgres`/`supabase_admin` rollarini istisno qiladi (operator maintenance uchun). Service-role kaliti bilan tekshirib bo'lmaydi — boshqa rol kerak.
+- ~~append-only trigger'ni service-role bilan tekshirib bo'lmaydi~~ — **tekshirildi**:
+  `verify:migrations` `service_role` (BYPASSRLS) ostida UPDATE/DELETE'ning trigger
+  tomonidan, RLS'dan mustaqil rad etilishini tasdiqlaydi.
+- `postgres`/`supabase_admin` (migratsiya/dashboard identifikatori) trigger'dan
+  istisno qilingan — operator maintenance uchun ataylab. Ilova kalitlari bu
+  imtiyozga ega emas.
 - Rate limiter har instance uchun xotirada (Phase 2 holati); bir nechta replika ortida limitlar ko'payadi. Redis adapter interfeysi tayyor.
 - Media metadata (`media_assets`) service-role bilan yoziladi; Storage obyekti esa admin JWT'si bilan.
 - MFA Phase 4 doirasiga kiritilmagan — Supabase Auth tomonida yoqiladi.
+- PGlite — Supabase'ning o'zi emas: `auth.*`/`storage.*` obyektlari va rollari
+  emulyatsiya qilingan (`scripts/verify-migrations.mjs`). Shu sababli u
+  **migratsiya faylining o'zini** isbotlaydi, infrastrukturani emas; real
+  loyihadagi yakuniy tasdiq `npm run verify:supabase` hisoblanadi.
+
+---
+
+## 12. Migratsiya xatosi: aniq sabab, aniq tuzatish, yangi darvozalar
+
+### 12.1 Aniq sintaksis xatosi
+
+`supabase/migrations/0004_auth.sql:54` (birinchi versiya):
+
+```sql
+role          text not null default 'admin' references admin_roles (role) on restrict,
+```
+
+PostgreSQL'da **`ON RESTRICT` degan foreign-key amali yo'q**. FAQAT
+`ON DELETE` va `ON UPDATE` mavjud, ularning har biri `RESTRICT | CASCADE |
+SET NULL | SET DEFAULT | NO ACTION` qabul qiladi. Shuning uchun parser
+`restrict` tokenida sinadi: `ERROR: 42601: syntax error at or near "restrict"`.
+
+Xato mustaqil ravishda tasdiqlandi: fayl haqiqiy libpg_query grammatikasi bilan
+jarohatlangan holda `cursorpos 2385` → bu aynan 54-qator.
+
+**Oqibat:** SQL Editor birinchi xatoda to'xtaydi → 54-qatordan keyingi hamma
+operator ishga tushmagan. Real loyihada `admin_roles` yaratilgan va seed
+qilingan, `admin_users`, audit kolonkalari, `uploaded_by` va Phase 4
+policy'lari **yo'q**. CI'dagi 404/503'larning ildizi shu.
+
+### 12.2 Aniq tuzatish
+
+`on delete restrict` — va u oddiy `references` emas, **ismli, convergent constraint**:
+
+```sql
+alter table admin_users
+  drop constraint if exists admin_users_role_fkey;
+alter table admin_users
+  add constraint admin_users_role_fkey
+  foreign key (role) references admin_roles (role) on delete restrict;
+```
+
+Nima uchun shunday:
+- `on restrict` → `on delete restrict` (to'g'ri sintaksis).
+- Aynan `RESTRICT`: rol birortaga biriktirilgan bo'lsa, rol o'chirilsa admin
+  o'z huquqini yo'qotadi — bu xato, shuning uchun bazada bloklanadi.
+- `drop constraint if exists` + `add constraint` — shu tufayli fayl **yarim
+  qo'llangan** bazaga ham, **toza** Phase 3 bazasiga ham bir xil natija beradi
+  (birinchi urinishda `alter table ... add column ... references` qisman
+  bajarilgan bo'lishi mumkin edi).
+- Shu pattern uchta FK'ga ham qo'llandi: `admin_users_user_id_fkey`
+  (`on delete cascade` — auth user o'chsa grant ham o'chadi),
+  `admin_users_role_fkey` (`restrict`), `media_assets_uploaded_by_fkey`
+  (`on delete set null` — atributsiya yo'ladi, fayl yozuvi qoladi).
+- Seed: `on conflict (role) do nothing` (mavjud rol permissions'ini qayta
+  yozmaydi).
+- `admin_audit_logs.admin_user_id` Ataylab **FK siz** — jurnal hisob
+  o'chirilganidan keyin ham yashashi kerak (sharh faylda ham yozilgan).
+
+### 12.3 Butun migratsiya qayta ko'rildi
+
+`0004_auth.sql` to'liq o'qildi va butun fayl + qo'shni fayllar real grammatika
+ostida tekshirildi:
+
+| Fayl | Natija |
+|---|---|
+| `0004_auth.sql` | `on restrict` **yagona** yaroqsiz konstruktsiya edi; qolgani (`create index … (lower(email))`, expression index, dollar-quoted trigger, `comment on`, RLS/storage policy'lari) valid |
+| `0001`–`0003`, `SEED.sql` | `on restrict` yo'q; barcha FK'lar `on delete …` bilan; toza parse |
+| `APPLY-ALL.sql` | eski nusxa — 482-qatorda xato bor edi; endi 4 migratsiyadan qayta generatsiya qilindi (116 statement, alohida bazada bajarib o'tildi) |
+
+Bazarda bajarib ko'rish (PGlite, PostgreSQL 18) — 18 tekshiruv, xususan:
+`0004` 43/43 statement, ikki marta qayta o'qilganda no-op, yarim holatdan
+tiklanish, `confdeltype='r'`, RLS ko'rinishi (anon/non-admin/faol admin/
+o'chirilgan admin), append-only trigger, seed ustida 17/17 jadval RLS bilan.
+
+### 12.4 Bunday xato yana o'tmasligi uchun qo'shilgan darvozalar
+
+| Buyruq | Nimani ushlaydi |
+|---|---|
+| `npm run check:sql` (`scripts/check-sql.mjs`) | barcha SQL fayllarni haqiqiy libpg_query grammatikasida parse qiladi + idempotency lint. Buzilgan faylni qayta kiritib sinab ko'rdim: `✗ line 155: syntax error at or near "restrict"` |
+| `npm run test:migrations` (`tests/migrations.test.mjs`, `npm test`ning 4-suiti) | FK action klassi, `if not exists`, `drop … if exists`, seed `do nothing`, audit FK-sizlik qarori, policy matni. Mutatsiya testlari o'tdi: `on restrict` → 3 test qizil; RLS'ni `using (true)` qilsa → "non-admin roster ko'rmasin" testi qizil |
+| `npm run verify:migrations` (`scripts/verify-migrations.mjs`) | migratsiyalarni **bajaradi** — Grammatika o'tsa ham ishlamaydigan hollar (FK amali, RLS siyosati, trigger) |
+| CI | `Verify Supabase` workflow'ida SQL darvozasi build'dan **oldin** qo'shildi; hech qanday secret chopmaydi |
+
+Ikki vosita (`pg-query-emscripten`, `@electric-sql/pglite`) `devDependencies`ga
+qo'shildi (~30 MB, transitive bog'liqliksiz) — `--no-save` bilan qo'ymaslik
+kerak: u boshqa ixtiyoriy paketni **o'chirib** qo'yadi va darvoza jimgina
+kuchsizlanadi. Ikkalasi ham faqat test/CI uchun, ilova bundle'iga kirmaydi.
+
+### 12.5 SQL Editor'da qayta ishga tushirish kerakmi?
+
+**HA.** `0004_auth.sql` (tuzatilgan) ni qayta paste qiling — xavfsiz:
+- birinchi urinish `admin_roles`da to'xtagani uchun bazada faqat shu bor;
+  qayta o'tqazish yoki tahlisiz tozalash **shart emas**;
+- fayl idempotent, shuning uchun toza Phase 3 bazasida ham bir marta,
+  shu yarim holatda ham bir marta ishlaydi (PGlite'da ikkala ssenariy ham
+  bajarib tasdiqlangan);
+- muvaffaqiyat belgisi — `Run` oxirida xato bo'lmaydi va tekshiruv so'rovi
+  ikkala jadvalni ko'rsatadi:
+
+  ```sql
+  select
+    (select count(*) from admin_roles) as roles,     -- 1 (admin)
+    (select count(*) from admin_users) as admins;    -- 0 (bootstrap key bilan to'ldiriladi)
+  ```
+
+So'ng: `node scripts/admin-user.mjs create --email <siz> --role admin`, keyin
+`Verify Supabase` workflow'ini qayta ishga tushiring.

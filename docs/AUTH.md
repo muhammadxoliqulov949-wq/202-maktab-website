@@ -181,14 +181,26 @@ pagination live. Phase 4 adds:
 | --- | --- | --- |
 | `admin_users` | on | `admin_users_select_self` — an authenticated user may read **their own** row (`auth.uid() = user_id`). |
 | `admin_roles` | on | `admin_roles_select_active_admin` — only active admins may read the role/permission catalogue. |
-| `admin_audit_logs` | on | none (default deny) + append-only trigger blocking `UPDATE`/`DELETE` for every role except the table owner. |
+| `admin_audit_logs` | on | none (default deny) + append-only trigger blocking `UPDATE`/`DELETE` for every role except the table owner. "Table owner" is `postgres`/`supabase_admin` (migration/dashboard identity) — **`service_role` is not exempt**, so even the API server cannot rewrite history; it may only append. `verify-migrations` asserts exactly this. |
 | `contact_submissions` | on | none — service role only. |
 | `media_assets` | on | none for anon/authenticated — service role only. |
 | content tables | on | unchanged from Phase 3. |
 | `storage.objects` (`media` bucket) | on | `media_public_read` (anon + authenticated), `media_admin_write` / `media_admin_update` / `media_admin_delete` — `exists (select 1 from public.admin_users where user_id = auth.uid() and is_active)`. |
 
 Each policy is exercised by `npm run verify:supabase` with a **real** authenticated JWT
-(§11).
+(§11), and every policy + FK action is additionally executed on a real PostgreSQL 18 by
+`npm run verify:migrations` (§11), which runs without credentials.
+
+> **Why the migration is written the way it is.** The first revision used
+> `references admin_roles (role) on restrict`, which PostgreSQL rejects — `ON RESTRICT`
+> is not a foreign-key action; only `ON DELETE`/`ON UPDATE` exist, each taking
+> `RESTRICT | CASCADE | SET NULL | SET DEFAULT | NO ACTION`. The SQL Editor aborted at
+> that statement and left the project part-migrated (`admin_roles` created,
+> `admin_users` not). The corrected file uses explicit **named** constraints preceded by
+> `drop constraint if exists`, so the same paste converges a clean Phase 3 database and
+> that part-applied one. `admin_user_id` on the audit table deliberately carries **no**
+> foreign key: a journal must outlive the account it records (a cascade would let account
+> deletion erase history).
 
 ---
 
@@ -313,7 +325,9 @@ cannot be used as an address list.
 
 | Command | What it proves |
 | --- | --- |
-| `npm test` | 3 suites: public API, admin CRUD (authenticated), and the new **auth** suite (login/401/403/inactive/CSRF/session/audit/dev-token regression) against a local Supabase-Auth test double. |
+| `npm test` | 4 suites: public API, admin CRUD (authenticated), **auth** (login/401/403/inactive/CSRF/session/audit/dev-token regression) against a local Supabase-Auth test double, and **migrations** (SQL guard assertions). |
 | `npm run build` | production build, no `server-only` violations, no secret inlining. |
 | `npm run verify:supabase` | real Supabase project: schema, Phase 3 public/CRUD/audit/cache checks **plus** Phase 4 auth, RLS, 401/403, audit user-id, logout and Storage-policy checks. |
+| `npm run check:sql` | every `supabase/migrations/*.sql`, `APPLY-ALL.sql` and `SEED.sql` parsed by the **real PostgreSQL grammar** (libpg_query), plus structural lint: invalid FK actions, `create table/index` without `if not exists`, trigger/policy/constraint without a preceding `drop … if exists`, any `drop table`/`truncate`. Catches `syntax error at or near "restrict"` before a human pastes it. |
+| `npm run verify:migrations` | **executes** the migrations on real PostgreSQL 18 (PGlite, Supabase's `auth.*`/`storage.*` objects emulated): clean apply, double re-run idempotency, recovery from the part-applied state, FK actions (`RESTRICT`/`CASCADE`/`SET NULL`), append-only trigger under `service_role`, and RLS/storage visibility for anon, non-admin, active admin and deactivated admin. No credentials needed, so it runs in CI before the build. |
 | `node scripts/check-secrets.mjs` | no key material in the tree or in git history. |
