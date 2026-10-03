@@ -1,4 +1,4 @@
-# Supabase — 202-maktab (Phase 3)
+# Supabase — 202-maktab (Phase 3 + Phase 4)
 
 Reproducible database setup. **Migratsiyalarni qo'lda dashboardda bosib-bosib yaratmang** — faqat shu fayllarni qo'llang.
 
@@ -10,6 +10,7 @@ Reproducible database setup. **Migratsiyalarni qo'lda dashboardda bosib-bosib ya
    1. `migrations/0001_initial_schema.sql`
    2. `migrations/0002_rls.sql`
    3. `migrations/0003_storage.sql`
+   4. `migrations/0004_auth.sql`  ← Phase 4 (admin_users, admin_roles, audit identiteti, Storage policy'lari)
 
 ### Variant B — Supabase CLI
 ```bash
@@ -24,6 +25,7 @@ supabase db push
 | `0001_initial_schema.sql` | 15 jadval, CHECK/NOT NULL/UNIQUE/FK constraintlar, indekslar, `updated_at` triggerlari |
 | `0002_rls.sql` | Har bir jadvalda RLS yoqiladi, hech qanday anon policy YO'Q (default deny). Server faqat service-role bilan ishlaydi |
 | `0003_storage.sql` | `media` public bucket (metadata DB'da, fayllar Storage'da) |
+| `0004_auth.sql` | `admin_roles` (rol→ruxsatlar), `admin_users` (auth.users ↔ rol), `admin_audit_logs`ga `admin_user_id/admin_email/ip_address` + append-only trigger, `media_assets.uploaded_by`, RLS policy'lari va Storage write policy'lari |
 
 ## Qisqa sxema xaritasi
 
@@ -41,12 +43,31 @@ supabase db push
 | `contact_information` | Rasmiy aloqa ma'lumoti (singleton) | int 1 |
 | `contact_submissions` | **ADMIN-ONLY** murojaatlar inboxi | uuid |
 | `media_assets` | Storage metadata (fayl URL'ları) | uuid |
-| `admin_audit_logs` | Admin mutatsiya jurnali | bigint identity |
+| `admin_audit_logs` | Admin mutatsiya jurnali (append-only, trigger bilan himoyalangan) | bigint identity |
+| `admin_roles` | Rol → ruxsatlar katalogi (`admin` seeded) | text (`admin`) |
+| `admin_users` | **ADMIN-ONLY** — `auth.users.id` ↔ rol/aktivlik | uuid |
 
-## Xavfsizlik holati (halol)
+## Xavfsizlik holati (Phase 4 dan keyin)
 
-- **HLozirda himoyalangan:** barcha jadvallar RLS + default-deny (anon kalit hech narsa o'qiy olmaydi); xizmat kaliti faqat server-side (`src/server/repositories/supabase/client.ts` — `server-only`); `contact_submissions` va `admin_audit_logs` umuman public API'da yo'q.
-- **Phase 4'da bo'ladi:** real autentifikatsiya, rollar, admin uchun aniq policy'lar, MFA maslahati.
+- **Autentifikatsiya:** Supabase Auth (email + parol). Parollar hech qayerda saqlanmaydi — faqat GoTrue'da.
+- **Awtorizatsiya:** `admin_users` (aktivlik) + `admin_roles.permissions` (rol → ruxsatlar). Har bir `/api/v1/admin/*` handler'i mustaqil tekshiradi.
+- **RLS:** barcha jadvallar default-deny. Qo'shimcha tor policy'lar:
+  - `admin_users_select_self` — foydalanuvchi faqat O'Z yozuvini o'qiy oladi;
+  - `admin_roles_select_active_admin` — katalog faqat faol adminlarga ko'rinadi;
+  - `storage.objects`: `media` bucket'ni hamma o'qiy oladi, yozish/o'chirish faqat faol admin JWT'si bilan.
+- **Service-role kalit:** faqat server-side (`src/lib/supabase/service.ts` — `server-only` import build xatosiga olib keladi). Nima uchun har bir holatda ishlatilishi `docs/AUTH.md §2.1`da yozilgan.
+- **Append-only:** `admin_audit_logs`da UPDATE/DELETE trigger bilan taqiqlangan.
+
+## Birinchi adminni yaratish
+
+```bash
+# .env.local'da SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY bo'lsin
+node scripts/admin-user.mjs create --email siz@202-maktab.uz --role admin
+node scripts/admin-user.mjs list
+node scripts/admin-user.mjs deactivate --user-id <uuid>   # darhol 403
+```
+
+Batafsil: `docs/AUTH.md §6`.
 
 ## Keyingi qadam: seed
 

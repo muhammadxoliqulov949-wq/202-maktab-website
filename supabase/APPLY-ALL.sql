@@ -426,3 +426,201 @@ on conflict (id) do nothing;
 -- Writes: in Phase 3 only the service role key (server-side) may upload —
 -- there are intentionally NO storage object policies granting anon writes.
 -- Phase 4 adds authenticated upload policies together with real admin auth.
+-- ============================================================================
+-- 202-maktab — Phase 4: real authentication & authorization
+--
+-- Adds:
+--   1. admin_roles          — database-backed role → permission catalogue
+--   2. admin_users          — links a Supabase Auth user (auth.users.id) to a role
+--   3. admin_audit_logs     — real admin identity columns + append-only trigger
+--   4. media_assets         — uploader attribution
+--   5. RLS policies         — self-read for admin_users, admin-only role catalogue
+--   6. Storage policies     — public read, active-admin write on bucket `media`
+--
+-- Idempotent: safe to re-run.
+-- ============================================================================
+
+-- ---------------------------------------------------------------------------
+-- 1. admin_roles — role → permissions.
+--    Handlers ask for a PERMISSION, never for a role name, so adding
+--    `editor`/`viewer` later is a data change, not a code change.
+-- ---------------------------------------------------------------------------
+create table if not exists admin_roles (
+  role        text primary key,
+  description text,
+  permissions text[] not null default '{}',
+  created_at  timestamptz not null default now()
+);
+
+insert into admin_roles (role, description, permissions)
+values (
+  'admin',
+  'Full administrative access to the 202-maktab CMS.',
+  array[
+    'dashboard.read',
+    'content.read', 'content.write',
+    'inbox.read', 'inbox.write',
+    'audit.read',
+    'media.read', 'media.write',
+    'settings.read', 'settings.write',
+    'admin.manage'
+  ]
+)
+on conflict (role) do update
+  set description = excluded.description,
+      permissions = excluded.permissions;
+
+-- ---------------------------------------------------------------------------
+-- 2. admin_users — one row per authorized administrator.
+--    `user_id` is the Supabase Auth UUID (auth.users.id). Passwords are NEVER
+--    stored here: credential verification is delegated entirely to GoTrue.
+-- ---------------------------------------------------------------------------
+create table if not exists admin_users (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null unique references auth.users (id) on delete cascade,
+  email         text not null unique,
+  role          text not null default 'admin' references admin_roles (role) on restrict,
+  is_active     boolean not null default true,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  last_login_at timestamptz
+);
+
+create index if not exists idx_admin_users_user_id on admin_users (user_id);
+create index if not exists idx_admin_users_email on admin_users (lower(email));
+
+-- updated_at maintenance
+create or replace function set_admin_users_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+drop trigger if exists trg_admin_users_updated_at on admin_users;
+create trigger trg_admin_users_updated_at
+  before update on admin_users
+  for each row execute function set_admin_users_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- 3. admin_audit_logs — attach the real authenticated identity.
+--    `admin_identifier` is preserved (Phase 3 rows keep their value).
+-- ---------------------------------------------------------------------------
+alter table admin_audit_logs add column if not exists admin_user_id uuid;
+alter table admin_audit_logs add column if not exists admin_email text;
+alter table admin_audit_logs add column if not exists ip_address text;
+
+create index if not exists idx_audit_admin_user on admin_audit_logs (admin_user_id);
+
+comment on column admin_audit_logs.admin_user_id is
+  'Phase 4: auth.users.id of the authenticated administrator (null for anonymous/failed attempts).';
+
+-- Append-only journal: nobody (not even an admin) may rewrite history.
+-- The table owner (postgres, used by migrations and the dashboard SQL editor)
+-- is intentionally exempt so operators can still perform maintenance.
+create or replace function admin_audit_logs_is_append_only()
+returns trigger language plpgsql as $$
+begin
+  if current_user in ('postgres', 'supabase_admin') then
+    if tg_op = 'DELETE' then return old; end if;
+    return new;
+  end if;
+  raise exception 'admin_audit_logs is append-only: % is not permitted', tg_op;
+end $$;
+
+drop trigger if exists trg_admin_audit_logs_no_update on admin_audit_logs;
+create trigger trg_admin_audit_logs_no_update
+  before update on admin_audit_logs
+  for each row execute function admin_audit_logs_is_append_only();
+
+drop trigger if exists trg_admin_audit_logs_no_delete on admin_audit_logs;
+create trigger trg_admin_audit_logs_no_delete
+  before delete on admin_audit_logs
+  for each row execute function admin_audit_logs_is_append_only();
+
+-- ---------------------------------------------------------------------------
+-- 4. media_assets — who uploaded it
+-- ---------------------------------------------------------------------------
+alter table media_assets add column if not exists uploaded_by uuid references auth.users (id) on delete set null;
+
+-- ---------------------------------------------------------------------------
+-- 5. Row Level Security
+--
+-- The Phase 3 model is kept: content tables stay default-deny for anon and
+-- authenticated PostgREST clients; the public site reads through /api/v1/*.
+-- Phase 4 adds narrowly-scoped policies for the two new auth tables only.
+-- ---------------------------------------------------------------------------
+alter table admin_roles enable row level security;
+alter table admin_users enable row level security;
+
+-- A signed-in Supabase user may read their OWN admin record (self-service
+-- "am I an admin / what is my role" without the service key).
+drop policy if exists admin_users_select_self on admin_users;
+create policy admin_users_select_self on admin_users
+  for select to authenticated
+  using ((select auth.uid()) = user_id);
+
+-- Only an ACTIVE administrator may read the role/permission catalogue.
+drop policy if exists admin_roles_select_active_admin on admin_roles;
+create policy admin_roles_select_active_admin on admin_roles
+  for select to authenticated
+  using (
+    exists (
+      select 1 from public.admin_users au
+      where au.user_id = (select auth.uid())
+        and au.is_active
+    )
+  );
+
+comment on table admin_users is
+  'ADMIN-ONLY. Links auth.users.id → role. No anon policies; self-select only for the owning user.';
+comment on table admin_roles is
+  'ADMIN-ONLY role/permission catalogue. Readable only by active administrators.';
+comment on table admin_audit_logs is
+  'ADMIN-ONLY, append-only (trigger-enforced). Only the service role (API server) writes it.';
+
+-- ---------------------------------------------------------------------------
+-- 6. Storage policies — bucket `media`
+--    Reads stay public (the bucket is public: the site embeds these URLs).
+--    Writes/updates/deletes require an ACTIVE admin_users row for the JWT's sub.
+-- ---------------------------------------------------------------------------
+drop policy if exists media_public_read on storage.objects;
+create policy media_public_read on storage.objects
+  for select
+  using (bucket_id = 'media');
+
+drop policy if exists media_admin_write on storage.objects;
+create policy media_admin_write on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'media'
+    and exists (
+      select 1 from public.admin_users au
+      where au.user_id = (select auth.uid())
+        and au.is_active
+    )
+  );
+
+drop policy if exists media_admin_update on storage.objects;
+create policy media_admin_update on storage.objects
+  for update to authenticated
+  using (
+    bucket_id = 'media'
+    and exists (
+      select 1 from public.admin_users au
+      where au.user_id = (select auth.uid())
+        and au.is_active
+    )
+  );
+
+drop policy if exists media_admin_delete on storage.objects;
+create policy media_admin_delete on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'media'
+    and exists (
+      select 1 from public.admin_users au
+      where au.user_id = (select auth.uid())
+        and au.is_active
+    )
+  );

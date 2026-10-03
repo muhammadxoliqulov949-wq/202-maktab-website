@@ -60,8 +60,10 @@ export function policyConfig(env: Env): Record<RatePolicyName, { limit: number; 
     publicRead: { limit: env.RATE_LIMIT_PUBLIC_READ_MAX, windowMs: env.RATE_LIMIT_PUBLIC_READ_WINDOW_MS },
     search: { limit: env.RATE_LIMIT_SEARCH_MAX, windowMs: env.RATE_LIMIT_SEARCH_WINDOW_MS },
     contact: { limit: env.RATE_LIMIT_CONTACT_MAX, windowMs: env.RATE_LIMIT_CONTACT_WINDOW_MS },
-    // reserved policies for later phases — configured now, applied later
-    auth: { limit: 10, windowMs: 60_000 },
+    // Phase 4: applied to POST /api/v1/auth/login. The limiter is keyed twice
+    // (per client IP and per submitted email) so a single attacker rotating
+    // accounts and a single account being sprayed are both throttled.
+    auth: { limit: env.RATE_LIMIT_LOGIN_MAX, windowMs: env.RATE_LIMIT_LOGIN_WINDOW_MS },
     admin: { limit: env.RATE_LIMIT_ADMIN_MAX, windowMs: env.RATE_LIMIT_ADMIN_WINDOW_MS },
   };
 }

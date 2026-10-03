@@ -171,16 +171,49 @@ export type AuditAction =
   | "PUBLISH"
   | "UNPUBLISH"
   | "STATUS_CHANGE"
-  | "REORDER";
+  | "REORDER"
+  /** Phase 4 — authentication & media lifecycle */
+  | "LOGIN"
+  | "LOGOUT"
+  | "LOGIN_FAILED"
+  | "LOGIN_DENIED"
+  | "MEDIA_UPLOAD"
+  | "MEDIA_DELETE"
+  | "SETTINGS_UPDATE"
+  | "ADMIN_GRANT"
+  | "ADMIN_REVOKE";
 
 export type AuditRow = {
   id: string;
+  /** Phase 3 mechanism label ("dev-token") — kept for historical rows only. */
   adminIdentifier: string | null;
+  /** Phase 4: the real Supabase Auth user id (auth.users.id). */
+  adminUserId: string | null;
+  /** Phase 4: admin e-mail (or a hashed hint for failed attempts). */
+  adminEmail: string | null;
+  /** Phase 4: client IP (best effort, proxy-aware). */
+  ipAddress: string | null;
   action: AuditAction;
   entityType: string;
   entityId: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
+};
+
+/** ---------------- Phase 4: administrator identity ---------------- */
+
+export type AdminUserRow = {
+  id: string;
+  /** Supabase Auth UUID (auth.users.id) — the link between Auth and the CMS. */
+  userId: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  /** Resolved from admin_roles.permissions (database-backed). */
+  permissions: string[];
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string | null;
 };
 
 /** ---------------- Public API DTOs (frozen Phase 2 contracts) ---------------- */

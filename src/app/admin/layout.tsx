@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { AdminShell } from "@/components/admin/AdminShell";
 
 /**
- * /admin — Phase 3 admin CMS.
- * DEVELOPMENT ONLY: no production authentication in this phase (see banner).
- * The panel talks exclusively to /api/v1/admin/* — never to the database directly.
+ * /admin — Phase 4 admin CMS root layout.
+ *
+ * Deliberately thin: it only sets metadata. The authenticated shell lives in
+ * `./(panel)/layout.tsx` so that `/admin/login` can render WITHOUT the panel
+ * chrome and without an auth check of its own.
  */
 export const metadata: Metadata = {
-  title: "Admin CMS — 202-maktab (development only)",
+  title: {
+    default: "Admin CMS — 202-maktab",
+    template: "%s — 202-maktab admin",
+  },
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
+  return children;
 }

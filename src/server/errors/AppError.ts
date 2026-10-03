@@ -51,6 +51,12 @@ export class AppError extends Error {
   static unauthorized(message = "Unauthorized") {
     return new AppError("UNAUTHORIZED", 401, message);
   }
+  static forbidden(message = "Forbidden") {
+    return new AppError("FORBIDDEN", 403, message);
+  }
+  static csrf(message = "Cross-site request rejected") {
+    return new AppError("CSRF_FAILED", 403, message);
+  }
   static serviceUnavailable(message = "Service temporarily unavailable") {
     return new AppError("SERVICE_UNAVAILABLE", 503, message);
   }

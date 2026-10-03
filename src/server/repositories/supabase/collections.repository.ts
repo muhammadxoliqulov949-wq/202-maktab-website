@@ -306,6 +306,9 @@ class SupabaseAuditRepository implements AuditRepository {
       .from("admin_audit_logs")
       .insert({
         admin_identifier: entry.adminIdentifier,
+        admin_user_id: entry.adminUserId,
+        admin_email: entry.adminEmail,
+        ip_address: entry.ipAddress,
         action: entry.action,
         entity_type: entry.entityType,
         entity_id: entry.entityId,
@@ -317,6 +320,9 @@ class SupabaseAuditRepository implements AuditRepository {
     return {
       id: String(d.id),
       adminIdentifier: (d.admin_identifier as string | null) ?? null,
+      adminUserId: (d.admin_user_id as string | null) ?? null,
+      adminEmail: (d.admin_email as string | null) ?? null,
+      ipAddress: (d.ip_address as string | null) ?? null,
       action: d.action as AuditRow["action"],
       entityType: String(d.entity_type ?? ""),
       entityId: (d.entity_id as string | null) ?? null,
@@ -335,6 +341,9 @@ class SupabaseAuditRepository implements AuditRepository {
     const rows = (dbGuard(res.error, res.data) as Array<Record<string, unknown>> | null ?? []).map((d) => ({
       id: String(d.id),
       adminIdentifier: (d.admin_identifier as string | null) ?? null,
+      adminUserId: (d.admin_user_id as string | null) ?? null,
+      adminEmail: (d.admin_email as string | null) ?? null,
+      ipAddress: (d.ip_address as string | null) ?? null,
       action: d.action as AuditRow["action"],
       entityType: String(d.entity_type ?? ""),
       entityId: (d.entity_id as string | null) ?? null,
@@ -351,6 +360,9 @@ class SupabaseAuditRepository implements AuditRepository {
     return (rows ?? []).map((d) => ({
       id: String(d.id),
       adminIdentifier: (d.admin_identifier as string | null) ?? null,
+      adminUserId: (d.admin_user_id as string | null) ?? null,
+      adminEmail: (d.admin_email as string | null) ?? null,
+      ipAddress: (d.ip_address as string | null) ?? null,
       action: d.action as AuditRow["action"],
       entityType: String(d.entity_type ?? ""),
       entityId: (d.entity_id as string | null) ?? null,

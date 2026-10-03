@@ -77,10 +77,27 @@ export function buildOpenApiSpec(origin: string) {
       { name: "team" },
       { name: "gallery" },
       { name: "contact" },
-      { name: "admin", description: "Phase 3 admin API — dev-token gated (x-admin-dev-token); production without ADMIN_DEV_TOKEN returns 503. Real auth lands in Phase 4." },
+      { name: "auth", description: "Phase 4 authentication. Credentials are verified by Supabase Auth; the session lives in an HttpOnly cookie. No endpoint returns a token." },
+      { name: "admin", description: "Admin API — requires a Supabase Auth session cookie for an active admin_users record. 401 without a session, 403 for non-admins. Unsafe methods also require the x-csrf-token double-submit header." },
     ],
     paths: {
-      "/api/v1/admin/dashboard": { get: { tags: ["admin"], summary: "Dashboard counts + recent activity", responses: { 200: { description: "OK" }, 401: { description: "Invalid dev token" }, 503: { description: "Admin disabled (production without token)" } } } },
+      "/api/v1/auth/login": { post: { tags: ["auth"], summary: "Email + password sign-in (rate limited per IP and per e-mail)", responses: { 200: { description: "Authenticated admin" }, 401: { description: "Invalid credentials (single generic message)" }, 403: { description: "Authenticated but not an active admin" }, 422: { description: "Validation error" }, 429: { description: "Too many attempts" } } } },
+      "/api/v1/auth/logout": { post: { tags: ["auth"], summary: "Revoke the refresh token and clear the session + CSRF cookies", responses: { 200: { description: "OK" } } } },
+      "/api/v1/auth/session": { get: { tags: ["auth"], summary: "Non-sensitive session summary — never returns tokens", responses: { 200: { description: "OK" } } } },
+      "/api/v1/admin/admin-users": {
+        get: { tags: ["admin"], summary: "List administrators + the role catalogue (permission: admin.manage)", responses: { 200: { description: "OK" }, 403: { description: "Forbidden" } } },
+        post: { tags: ["admin"], summary: "Link an existing Supabase Auth user id to a role", responses: { 201: { description: "Created" }, 422: { description: "Validation error" } } },
+      },
+      "/api/v1/admin/admin-users/{id}": {
+        patch: { tags: ["admin"], summary: "Activate / deactivate / change role", responses: { 200: { description: "OK" } } },
+        delete: { tags: ["admin"], summary: "Remove admin access (cannot remove yourself)", responses: { 200: { description: "OK" } } },
+      },
+      "/api/v1/admin/media": {
+        get: { tags: ["admin"], summary: "List media assets (permission: media.read)", responses: { 200: { description: "OK" } } },
+        post: { tags: ["admin"], summary: "Multipart upload (permission: media.write). MIME + extension + size validated; Storage write runs under the admin's own JWT.", responses: { 201: { description: "Created" }, 413: { description: "Too large" }, 415: { description: "Unsupported type" } } },
+      },
+      "/api/v1/admin/media/{id}": { delete: { tags: ["admin"], summary: "Delete a media asset + its Storage object", responses: { 200: { description: "OK" }, 404: { description: "Not found" } } } },
+      "/api/v1/admin/dashboard": { get: { tags: ["admin"], summary: "Dashboard counts + recent activity", responses: { 200: { description: "OK" }, 401: { description: "No valid session" }, 403: { description: "Not an active admin / CSRF failure" } } } },
       "/api/v1/admin/news": {
         get: { tags: ["admin"], summary: "List articles incl. drafts (status filter)", responses: { 200: { description: "OK" }, 401: { description: "Unauthorized" } } },
         post: { tags: ["admin"], summary: "Create article (unique slug, 409 on conflict)", responses: { 201: { description: "Created" }, 409: { description: "Slug conflict" }, 422: { description: "Validation error" } } },
@@ -96,7 +113,6 @@ export function buildOpenApiSpec(origin: string) {
       "/api/v1/admin/contact-info": { patch: { tags: ["admin"], summary: "Update official contact info", responses: { 200: { description: "OK" } } } },
       "/api/v1/admin/contact-submissions": { get: { tags: ["admin"], summary: "ADMIN-ONLY inbox (never public)", responses: { 200: { description: "OK" } } } },
       "/api/v1/admin/audit-log": { get: { tags: ["admin"], summary: "Audit trail", responses: { 200: { description: "OK" } } } },
-      "/api/v1/admin/media": { get: { tags: ["admin"], summary: "Media assets metadata (Storage integration Phase 4/5)", responses: { 200: { description: "OK" } } } },
       "/api/v1/health": { get: { tags: ["health"], summary: "Service health", responses: { 200: { description: "OK", content: { "application/json": { schema: envelope({ type: "object" }) } } } } } },
       "/api/v1/health/live": { get: { tags: ["health"], summary: "Liveness probe", responses: { 200: { description: "OK" } } } },
       "/api/v1/health/ready": { get: { tags: ["health"], summary: "Readiness probe", responses: { 200: { description: "OK" } } } },

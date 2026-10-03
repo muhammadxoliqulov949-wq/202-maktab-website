@@ -28,7 +28,9 @@ export type ApiErrorCode =
   | "INTERNAL_ERROR"
   | "SERVICE_UNAVAILABLE"
   | "CONFLICT"
-  | "UNAUTHORIZED";
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "CSRF_FAILED";
 
 export type ApiFailure = {
   success: false;
