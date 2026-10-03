@@ -14,6 +14,10 @@ name: Verify Supabase (Phase 3 + 4)
 #                                              avtomatik qo'llash uchun)
 # va Supabase'da migratsiyalar (0001–0004) + seed qo'llanilgan bo'lsin.
 #
+# SQL darvozasi (check-sql + verify-migrations) Supabase hisobiga ulanmaydi:
+# migratsiya fayllarini PGlite'dagi haqiqiy PostgreSQL'da bajaradi. Shu
+# sababli u secret'siz ham ishlaydi va build'dan oldin turadi.
+#
 # Maxfiylik: hech bir qadam secret qiymatini logga chiqarmaydi.
 
 on:
@@ -41,6 +45,16 @@ jobs:
 
       - name: Install
         run: npm ci --no-audit --no-fund
+
+      - name: SQL gate (PostgreSQL grammar + real execution)
+        # `on restrict` kabi yaroqsiz FK sintaksisi real loyihada migratsiyani
+        # qisman qo'llangan holatda qoldirgani uchun bu darvoza build'dan OLDIN
+        # ishlaydi. Ikki qatlam:
+        #   check-sql.mjs      — haqiqiy libpg_query grammatikasi + idempotency lint
+        #   verify-migrations  — migratsiyalarni REAL PostgreSQL'da bajaradi (PGlite)
+        run: |
+          node scripts/check-sql.mjs
+          node scripts/verify-migrations.mjs
 
       - name: Secret scan (working tree + git history)
         run: node scripts/check-secrets.mjs
