@@ -1,8 +1,12 @@
 -- ============================================================================
--- 202-MAKTAB — BARCHA MIGRATSIYALAR BIR FAYLDA (Phase 3)
+-- 202-MAKTAB — BARCHA MIGRATSIYALAR BIR FAYLDA (Phase 3 + Phase 4)
 -- Qo'llash: Supabase Dashboard → SQL Editor → shu fayl kontentini paste → Run
--- Idempotent: qayta ishga tushirish xavfsiz (IF NOT EXISTS / ON CONFLICT).
--- Tarkib: 0001 sxema → 0002 RLS → 0003 storage
+-- Idempotent: qayta ishga tushirish xavfsiz (IF NOT EXISTS / ON CONFLICT /
+--             DROP ... IF EXISTS oldidan CREATE TRIGGER|POLICY|CONSTRAINT).
+-- Tarkib: 0001 sxema → 0002 RLS → 0003 storage → 0004 auth (admin_users,
+--         admin_roles, audit identiteti, Storage policy'lari)
+-- Bu fayl supabase/migrations/*.sql fayllarining biriktirmasi — ular o'zgarsa,
+-- shu faylni ham qayta generatsiya qiling.
 -- ============================================================================
 
 -- ============================================================================
@@ -369,6 +373,7 @@ create table if not exists admin_audit_logs (
 
 create index if not exists idx_audit_created on admin_audit_logs (created_at desc);
 create index if not exists idx_audit_entity on admin_audit_logs (entity_type, entity_id);
+
 -- ============================================================================
 -- 202-maktab — Phase 3 Row Level Security (honest, minimal, no fake policies)
 --
@@ -407,6 +412,7 @@ alter table admin_audit_logs     enable row level security;
 comment on table contact_submissions is 'ADMIN-ONLY. RLS on, no policies: only service role (API server) may read/write. Never expose via public API.';
 comment on table admin_audit_logs  is 'ADMIN-ONLY. RLS on, no policies: only service role (API server) may read/write.';
 comment on table news_articles     is 'Public rows served ONLY via API server (draft/archive separation enforced there). RLS on, no policies for anon.';
+
 -- ============================================================================
 -- 202-maktab — Phase 3 storage foundation (Supabase Storage)
 --
@@ -426,6 +432,7 @@ on conflict (id) do nothing;
 -- Writes: in Phase 3 only the service role key (server-side) may upload —
 -- there are intentionally NO storage object policies granting anon writes.
 -- Phase 4 adds authenticated upload policies together with real admin auth.
+
 -- ============================================================================
 -- 202-maktab — Phase 4: real authentication & authorization
 --
@@ -437,7 +444,15 @@ on conflict (id) do nothing;
 --   5. RLS policies         — self-read for admin_users, admin-only role catalogue
 --   6. Storage policies     — public read, active-admin write on bucket `media`
 --
--- Idempotent: safe to re-run.
+-- Idempotent: safe to re-run, and safe to run on a database where an earlier
+-- attempt of this file failed part-way (every object is created with
+-- `if not exists`, every trigger/policy/constraint is dropped before it is
+-- recreated). It is also safe on a clean Phase 3 database.
+--
+-- Validated against the real PostgreSQL grammar by `node scripts/check-sql.mjs`
+-- (wired into `npm test`). An earlier revision used
+-- `references admin_roles (role) on restrict`, which PostgreSQL rejects
+-- (`ON RESTRICT` is not a foreign-key action) — see the guard tests.
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -452,6 +467,11 @@ create table if not exists admin_roles (
   created_at  timestamptz not null default now()
 );
 
+-- Seed the built-in `admin` role.
+-- `on conflict do nothing` (not `do update`) is deliberate: the catalogue is
+-- operator-owned once seeded, so re-running this migration must never clobber
+-- a permission list someone has since edited. Add roles with INSERT, adjust
+-- them with UPDATE.
 insert into admin_roles (role, description, permissions)
 values (
   'admin',
@@ -466,9 +486,7 @@ values (
     'admin.manage'
   ]
 )
-on conflict (role) do update
-  set description = excluded.description,
-      permissions = excluded.permissions;
+on conflict (role) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- 2. admin_users — one row per authorized administrator.
@@ -477,14 +495,31 @@ on conflict (role) do update
 -- ---------------------------------------------------------------------------
 create table if not exists admin_users (
   id            uuid primary key default gen_random_uuid(),
-  user_id       uuid not null unique references auth.users (id) on delete cascade,
+  user_id       uuid not null unique,
   email         text not null unique,
-  role          text not null default 'admin' references admin_roles (role) on restrict,
+  role          text not null default 'admin',
   is_active     boolean not null default true,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
   last_login_at timestamptz
 );
+
+-- Foreign keys are applied as explicit, named constraints (rather than inline in
+-- CREATE TABLE) so that the migration still converges if `admin_users` already
+-- existed from a previous, partially applied run.
+-- `on delete restrict` is the valid PostgreSQL form; `on restrict` is a syntax
+-- error and was the bug in the first revision of this file.
+alter table admin_users drop constraint if exists admin_users_user_id_fkey;
+alter table admin_users
+  add constraint admin_users_user_id_fkey
+  foreign key (user_id) references auth.users (id) on delete cascade;
+
+-- A role that is still assigned cannot be deleted (RESTRICT, not CASCADE):
+-- revoking access must stay an explicit `is_active`/reassignment operation.
+alter table admin_users drop constraint if exists admin_users_role_fkey;
+alter table admin_users
+  add constraint admin_users_role_fkey
+  foreign key (role) references admin_roles (role) on delete restrict;
 
 create index if not exists idx_admin_users_user_id on admin_users (user_id);
 create index if not exists idx_admin_users_email on admin_users (lower(email));
@@ -510,10 +545,15 @@ alter table admin_audit_logs add column if not exists admin_user_id uuid;
 alter table admin_audit_logs add column if not exists admin_email text;
 alter table admin_audit_logs add column if not exists ip_address text;
 
+-- Deliberately NO foreign key from admin_user_id to auth.users: an audit journal
+-- must outlive the account it records. Deleting an Auth user must never be able
+-- to cascade away history, so the column keeps the UUID as a value of record.
 create index if not exists idx_audit_admin_user on admin_audit_logs (admin_user_id);
 
 comment on column admin_audit_logs.admin_user_id is
   'Phase 4: auth.users.id of the authenticated administrator (null for anonymous/failed attempts).';
+comment on column admin_audit_logs.admin_email is
+  'Admin email for successful actions; a sha256: prefix for failed logins, so this table is never an address list.';
 
 -- Append-only journal: nobody (not even an admin) may rewrite history.
 -- The table owner (postgres, used by migrations and the dashboard SQL editor)
@@ -540,8 +580,14 @@ create trigger trg_admin_audit_logs_no_delete
 
 -- ---------------------------------------------------------------------------
 -- 4. media_assets — who uploaded it
+--    Same explicit-constraint pattern as admin_users, for convergence.
 -- ---------------------------------------------------------------------------
-alter table media_assets add column if not exists uploaded_by uuid references auth.users (id) on delete set null;
+alter table media_assets add column if not exists uploaded_by uuid;
+
+alter table media_assets drop constraint if exists media_assets_uploaded_by_fkey;
+alter table media_assets
+  add constraint media_assets_uploaded_by_fkey
+  foreign key (uploaded_by) references auth.users (id) on delete set null;
 
 -- ---------------------------------------------------------------------------
 -- 5. Row Level Security
@@ -573,7 +619,7 @@ create policy admin_roles_select_active_admin on admin_roles
   );
 
 comment on table admin_users is
-  'ADMIN-ONLY. Links auth.users.id → role. No anon policies; self-select only for the owning user.';
+  'ADMIN-ONLY. Links auth.users.id to a role. No anon policies; self-select only for the owning user.';
 comment on table admin_roles is
   'ADMIN-ONLY role/permission catalogue. Readable only by active administrators.';
 comment on table admin_audit_logs is
