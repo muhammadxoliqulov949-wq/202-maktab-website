@@ -2,15 +2,11 @@ import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { SmartVideo } from "@/components/media/SmartVideo";
 import { HeroFx } from "@/components/sections/HeroFx";
-import { HeroBook3D } from "@/components/sections/HeroBook3D";
 import { site } from "@/data/site";
 
 /**
- * SECTION 01 — Cinematic hero + 3D "bilim yadrosi".
- *
- * Chapda: sarlavha va harakatlar. O'ngda (desktop): WebGL 3D obyekt —
- * aylanadigan shishasimon yadro, orbital halqalar va "fan" tugunlari
- * (sichqoncha parallaksi + scroll bilan bog'langan).
+ * SECTION 01 — Cinematic hero: sarlavha, harakatlar va shisha statistik panel.
+ * 3D obyekt ishlatilmaydi (foydalanuvchi so'roviga ko'ra olib tashlangan).
  *
  * Exactly one viewport tall (100svh); on short screens typography compacts
  * via CSS so everything — CTAs and scroll cue — fits inside the window.
@@ -26,12 +22,6 @@ export function Hero() {
       </div>
 
       <HeroFx />
-
-      {/* 3D kitob — matn yonidagi bo'sh joyda (hikmat sahifalari) */}
-      <div className="hero-3d-wrap anim-fade anim-fade-3" data-hero-3d>
-        <HeroBook3D className="herobook-canvas" />
-        <span className="hero-3d-glow" aria-hidden="true" />
-      </div>
 
       {/* content */}
       <div className="container-x relative z-10 flex flex-1 flex-col justify-center pb-8 pt-[104px]" data-hero-content>
