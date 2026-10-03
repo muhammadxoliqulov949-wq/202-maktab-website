@@ -140,31 +140,45 @@ qo'shilgach Next uning edge variantini ham kompilyatsiya qiladi), `forbidden()` 
 
 ## 9. Real Supabase tekshiruvi natijasi
 
-CI run [#37126408501](https://github.com/muhammadxoliqulov949-wq/202-maktab-website/actions/runs/37126408501):
+CI run [#37127138481](https://github.com/muhammadxoliqulov949-wq/202-maktab-website/actions/runs/37127138481):
 
 | Qadam | Natija |
 |---|---|
-| Secret scan (tree + git history) | ✅ |
-| Build | ✅ |
-| Test (83) | ✅ |
-| Verify (real Supabase) | ⚠️ **Phase 4 qismi o'tmadi — sabab §11** |
+| Secret scan (tree + git history) | ✅ success |
+| Build | ✅ success |
+| Test (83) | ✅ success |
+| Verify (real Supabase) | ⚠️ failure — **faqat migratsiya tufayli** (§11) |
 
-Muvaffaqiyatsiz tekshiruvlarning **barchasi** bitta sababga borib taqaladi:
+Verify'dagi qolgan **barcha** muvaffaqiyatsizliklar bitta sababga borib taqaladi:
 
 ```
 jadval: admin_users  — REST xato (404)
 jadval: admin_roles  — REST xato (404)
 admin_users jadvali mavjud — HTTP 404
+admin_audit_logs: admin_user_id/admin_email/ip_address — HTTP 400
 login (admin) → 200 — HTTP 503   (admin_users yo'q → dbGuard 503)
 ```
 
-Ya'ni `0004_auth.sql` real loyihaga qo'llanmagan. Phase 3 tekshiruvlari (server ishga
-tushishi, public API, tezlik) ro'yxatda yo'q — ular o'tgan.
+Ya'ni `0004_auth.sql` real loyihaga qo'llanmagan. Muhim jihat:
+
+- **Phase 3 tekshiruvlarining barchasi o'tgan** (server ishga tushishi, public API,
+  news/team/faqs/site-config/contact-info, tezlik) — hech qaysi FAIL ro'yxatida yo'q.
+- Login endpoint'i haqiqiy GoTrue'ga ulanib **haqiqiy parol bilan** ishlamoqda:
+  noto'g'ri parol va mavjud bo'lmagan foydalanuvchi uchun 401 + umumiy xabar
+  tekshiruvlari ro'yxatda yo'q, ya'ni o'tgan.
+- 503 — bu xavfsizlik xatosi emas: `admin_users` jadvali yo'qligi `dbGuard` orqali
+  ataylab 503'ga moddalangan (stack trace sizib chiqmaydi).
+
+Bu holatda **Phase 4 "real Supabase verification o'tdi" deb da'vo qilmayman** —
+migratsiya qo'llangach qayta ishga tushirish kerak.
 
 ## 10. Git
 
 - **Branch:** `arena/01a101bc-202-maktab-website` (main'dan; force-push/reset yo'q)
-- **Commit'lar:** `2efb82a` (auth core) → `18ffabe` (testlar + verification) → `7a7525a` (docs) → `1b7c302` (env fix + migration helper)
+- **Commit'lar (7 ta):**
+  `2efb82a` auth core → `18ffabe` testlar + verification → `7a7525a` docs →
+  `1b7c302` env fix + migration helper → `e6fef5c` hisobot →
+  `d56bbe0` smoke-row tozalash → `acf2d4f` tozalash bug'ini tuzatish
 - **PR:** [#3](https://github.com/muhammadxoliqulov949-wq/202-maktab-website/pull/3) — **merge qilinmagan**
 
 ## 11. Qolgan yagona to'siq va cheklovlar
