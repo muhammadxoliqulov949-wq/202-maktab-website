@@ -96,9 +96,23 @@ export type Env = z.infer<typeof envSchema>;
 
 let cached: Env | null = null;
 
+/**
+ * CI systems (GitHub Actions included) expand a missing secret to an EMPTY
+ * STRING rather than leaving the variable unset, which would fail
+ * `.min(1)` / `.url()` on optional fields. Treat blank as absent so an unset
+ * optional secret never crashes the process at boot.
+ */
+function cleanEnv(source: NodeJS.ProcessEnv): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(source)) {
+    if (typeof v === "string" && v.trim() !== "") out[k] = v;
+  }
+  return out;
+}
+
 export function getEnv(): Env {
   if (cached) return cached;
-  const parsed = envSchema.safeParse(process.env);
+  const parsed = envSchema.safeParse(cleanEnv(process.env));
   if (!parsed.success) {
     // Startup validation failure — fail loudly and safely (no secret values).
     const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");

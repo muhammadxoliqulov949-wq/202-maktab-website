@@ -65,6 +65,8 @@ async function applyMigration(file) {
   return { ok: true };
 }
 
+let phase4SchemaReady = false;
+
 const results = [];
 function check(name, ok, detail = "") {
   results.push({ name, ok, detail });
@@ -243,12 +245,29 @@ try {
     const adminRole = Array.isArray(rolesBody) ? rolesBody.find((r) => r.role === "admin") : null;
     check("admin_roles: 'admin' roli mavjud", Boolean(adminRole), adminRole ? `${adminRole.permissions?.length ?? 0} ta ruxsat` : "");
 
-    const probe = await rest("admin_users", { qs: "select=admin_placeholder_x&limit=1" });
-    // Noto'g'ri ustun → 400 (jadval bor), 404/PGRST205 → jadval yo'q.
-    check("admin_users ustunlari: user_id/email/role/is_active", probe.status === 400, `HTTP ${probe.status}`);
+    const usersProbe = await rest("admin_users", { qs: "select=id,user_id,email,role,is_active&limit=1" });
+    check("admin_users jadvali mavjud", usersProbe.status === 200, `HTTP ${usersProbe.status}`);
 
     const auditProbe = await rest("admin_audit_logs", { qs: "select=admin_user_id,admin_email,ip_address&limit=1" });
     check("admin_audit_logs: admin_user_id/admin_email/ip_address ustunlari bor", auditProbe.status === 200, `HTTP ${auditProbe.status}`);
+
+    // Migration qo'llanilmagan bo'lsa — bitta aniq, amalga oshiriladigan xabar.
+    phase4SchemaReady = usersProbe.status === 200 && Boolean(adminRole);
+    if (!phase4SchemaReady) {
+      console.log("");
+      console.log("┌──────────────────────────────────────────────────────────────────────────┐");
+      console.log("│  0004_auth.sql HAQIQIY LOYIHAGA QO'LLANMAGAN.                            │");
+      console.log("│  admin_users / admin_roles jadvallari yo'q, shuning uchun Phase 4 auth   │");
+      console.log("│  tekshiruvlari ishlamaydi. Bitta qadam kerak:                            │");
+      console.log("│                                                                          │");
+      console.log("│  Supabase dashboard → SQL Editor → supabase/migrations/0004_auth.sql     │");
+      console.log("│  faylini to'liq paste qiling → Run.  (idempotent, qayta ishlatsa bo'ladi)│");
+      console.log("│                                                                          │");
+      console.log("│  Yoki repo secret'lariga SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF    │");
+      console.log("│  qo'shing — shunda bu skript migratsiyani o'zi qo'llaydi.                │");
+      console.log("└──────────────────────────────────────────────────────────────────────────┘");
+      console.log("");
+    }
   }
 
   /* ============ 2) server ============ */

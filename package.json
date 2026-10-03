@@ -18,7 +18,8 @@
     "verify:supabase": "node scripts/verify-supabase.mjs",
     "test:auth": "node --test tests/auth.test.mjs",
     "admin:user": "node scripts/admin-user.mjs",
-    "check:secrets": "node scripts/check-secrets.mjs"
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "db:migrate:apply": "node scripts/apply-migration.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
