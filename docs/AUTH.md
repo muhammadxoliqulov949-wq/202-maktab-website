@@ -232,22 +232,45 @@ and the git history for leaked keys and runs in CI.
 
 ## 6. Creating the first administrator (bootstrap)
 
-No admin is hardcoded anywhere in the source tree.
+No admin is hardcoded anywhere in the source tree, and `admins = 0` is the correct
+state right after `0004_auth.sql` is applied: the schema exists, nobody is granted yet.
+
+**You do not need to create the Auth user in the dashboard first** — but which command
+you run depends on whether one already exists:
+
+| Situation | Command | What it does |
+| --- | --- | --- |
+| No Auth user for that e-mail yet | `node scripts/admin-user.mjs create --email <e> --role admin` | creates the Auth user (GoTrue admin API, `email_confirm: true`) **and** the `admin_users` row |
+| Auth user **already exists** (signed up / invited / created in the dashboard) | `node scripts/admin-user.mjs link --email <e> --role admin` | looks the user up and writes **only** the `admin_users` row — no password, no user record touched, nothing deleted |
 
 ```bash
-# 1. create (or reuse) a Supabase Auth user — password is prompted, never an argv
-node scripts/admin-user.mjs create --email director@202-maktab.uz --role admin
-# → prints the auth.users UUID
+export SUPABASE_URL=...                       # or keep them in .env.local
+export SUPABASE_SERVICE_ROLE_KEY=...          # read from the environment, never committed
 
-# 2. inspect / deactivate / revoke
-node scripts/admin-user.mjs list
-node scripts/admin-user.mjs deactivate --user-id <uuid>
-node scripts/admin-user.mjs delete --user-id <uuid>
+node scripts/admin-user.mjs list              # who has access today (addresses masked)
+node scripts/admin-user.mjs create --email director@202-maktab.uz --role admin
+#   → prompts the password twice on STDIN, prints auth.users UUID, inserts admin_users
+node scripts/admin-user.mjs link --email director@202-maktab.uz   # if create says it already exists
 ```
 
-The script needs `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` in the environment and
-writes both the `auth.users` row (via the GoTrue admin API) and the `admin_users` row.
-It never prints the password or any key.
+Running `create` for an e-mail that exists stops with a pointer to `link`; it never
+overwrites or re-invites the account. `link` is idempotent: if the grant already exists
+with the same role and `is_active`, it reports that and issues **no write at all**.
+
+Non-interactive use is supported (the password prompts read a line queue, so piping
+works): `printf 'pw\npw\n' | node scripts/admin-user.mjs create --email <e>`. A
+truncated pipe fails loudly instead of exiting 0 having done nothing — that was a real
+defect: two sequential `rl.question()` calls on a pipe answer only the first, so the
+command printed both prompts, called nothing and died on an unsettled await. Note that
+piping puts the password in shell history — prefer the interactive prompt, and never
+paste a password or key into a chat/CI log.
+
+Verification afterwards (read-only):
+
+```sql
+select u.email, a.role, a.is_active, a.last_login_at
+from admin_users a join auth.users u on u.id = a.user_id;
+```
 
 The bootstrap is **not** a backdoor: it is an operator-run CLI with the same privileges
 as the Supabase dashboard, it creates no ambient credential, and deleting the

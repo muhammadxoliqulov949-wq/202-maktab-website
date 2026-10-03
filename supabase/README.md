@@ -90,6 +90,9 @@ Uchala darvoza ham CI'da (`Verify Supabase` workflow) build'dan **oldin** ishlay
 ```bash
 # .env.local'da SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY bo'lsin
 node scripts/admin-user.mjs create --email siz@202-maktab.uz --role admin
+# Agar Auth'da bunday foydalanuvchi ALLAQACHON mavjud bo'lsa (dashboard'da
+# yaratgan yoki taklif yuborilgan bo'lsa) — `create` 422 bilan to'xtaydi:
+node scripts/admin-user.mjs link --email siz@202-maktab.uz   # faqat admin_users yozuvi
 node scripts/admin-user.mjs list
 node scripts/admin-user.mjs deactivate --user-id <uuid>   # darhol 403
 ```
