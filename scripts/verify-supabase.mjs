@@ -71,8 +71,17 @@ async function applyMigration(file) {
 let phase4SchemaReady = false;
 
 const results = [];
+let currentGroup = "Boshlanish";
+
+/** Prints a section header AND tags every subsequent check, so the final report
+ *  can say which group passed instead of only a flat total. */
+function section(group, line) {
+  currentGroup = group;
+  console.log(`\n── ${line ?? group}\n`);
+}
+
 function check(name, ok, detail = "", opts = {}) {
-  const rec = { name, ok, detail, skipped: Boolean(opts.skipped) };
+  const rec = { name, ok, detail, group: currentGroup, skipped: Boolean(opts.skipped) };
   results.push(rec);
   const mark = ok ? "✓" : rec.skipped ? "!" : "✗";
   console.log(`${mark} ${name}${detail ? ` — ${detail}` : ""}`);
@@ -239,7 +248,7 @@ try {
   await cleanupSmokeRows("oldingi yugurishdan ");
 
   /* ============ 1) jadvallar ============ */
-  console.log(`\n── Supabase REST tekshiruvi: ${new URL(SUPA).host}\n`);
+  section("Jadvallar + seed (Phase 3)", `Supabase REST tekshiruvi: ${new URL(SUPA).host}`);
   const EXPECTED = {
     site_settings: 1,
     contact_information: 1,
@@ -273,7 +282,7 @@ try {
   }
 
   /* ============ 7) Phase 4 sxemasi ============ */
-  console.log("\n── Phase 4 sxemasi (admin_users / admin_roles / audit)\n");
+  section("Phase 4 sxemasi (admin_users / admin_roles / audit)");
   {
     const roles = await rest("admin_roles", { qs: "select=role,permissions" });
     const rolesBody = await roles.json().catch(() => null);
@@ -306,7 +315,7 @@ try {
   }
 
   /* ============ 2) server ============ */
-  console.log("\n── Server (DATA_PROVIDER=supabase)\n");
+  section("Server + public API (Phase 3)");
   server = startServer();
   const ready = await waitReady();
   check("server ishga tushdi", ready);
@@ -333,7 +342,7 @@ try {
   check("contact-info koordinatalari", ci.body?.data?.map?.latitude === 41.2797, `lat=${ci.body?.data?.map?.latitude}`);
 
   /* ============ 8-14) Phase 4 auth ============ */
-  console.log("\n── Phase 4: Supabase Auth + authorization (real loyiha)\n");
+  section("Phase 4: Auth + authorization");
 
   const stamp = Date.now().toString(36);
   const P = {
@@ -433,7 +442,7 @@ try {
   check("CSRF token'siz mutatsiya → 403", noCsrf.status === 403, `HTTP ${noCsrf.status}`);
 
   /* ============ 4 + 12) CRUD smoke + audit user id ============ */
-  console.log("\n── Admin CRUD smoke (real sessiya bilan, cleanup)\n");
+  section("Admin CRUD (Phase 3)");
   const slug = `ci-smoke-${stamp}`;
   let articleId = null;
   try {
@@ -534,7 +543,7 @@ try {
   }
 
   /* ============ 14) RLS ============ */
-  console.log("\n── Phase 4: RLS (PostgREST)\n");
+  section("RLS (PostgREST, anon + user JWT)");
   {
     const anonHeaders = { apikey: ANON, Authorization: `Bearer ${ANON}`, "content-type": "application/json" };
     if (!ANON) {
@@ -574,7 +583,7 @@ try {
   }
 
   /* ============ 6) tezlik ============ */
-  console.log("\n── Tezlik (30 so'rov, ms)\n");
+  section("Tezlik");
   for (const p of ["/api/v1/news", "/api/v1/team"]) {
     const t = [];
     for (let i = 0; i < 30; i++) {
@@ -609,10 +618,29 @@ const failed = results.filter((r) => !r.ok && !r.skipped);
 const notRun = results.filter((r) => r.skipped);
 const passed = results.length - failed.length - notRun.length;
 console.log(`\n═══════ NATIJA: ${passed}/${results.length} o'tdi` + (failed.length ? `, ${failed.length} xato` : "") + (notRun.length ? `, ${notRun.length} o'tkazib yuborildi (fail-closed)` : "") + " ═══════");
+
+/* Guruhiy hisobot — "hammasi o'tdi" bilan birga QAYSISI o'tganini ko'rsatadi. */
+const groups = [...new Set(results.map((r) => r.group))];
+const byGroup = groups.map((g) => {
+  const rs = results.filter((r) => r.group === g);
+  return {
+    group: g,
+    total: rs.length,
+    ok: rs.filter((r) => r.ok).length,
+    bad: rs.filter((r) => !r.ok && !r.skipped).length,
+    skip: rs.filter((r) => r.skipped).length,
+  };
+});
+console.log("");
+for (const g of byGroup) {
+  const flag = g.bad || g.skip ? "✗" : "✓";
+  console.log(`  ${flag} ${g.group}: ${g.ok}/${g.total}` + (g.bad ? ` (${g.bad} xato)` : "") + (g.skip ? ` (${g.skip} skipped)` : ""));
+}
+
 if (failed.length) {
-  console.log("O'tmaganlar:");
+  console.log("\nO'tmaganlar:");
   for (const f of failed) {
-    console.log(`  ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+    console.log(`  ✗ [${f.group}] ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
     if (process.env.GITHUB_ACTIONS === "true") console.log(`::error::FAIL: ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
   }
   exitCode = 1;
@@ -620,9 +648,28 @@ if (failed.length) {
 if (notRun.length) {
   console.log("\nTekshirib bo'lmagan (buni sozlasangiz darvoza to'liq yashil bo'ladi):");
   for (const f of notRun) {
-    console.log(`  ! ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
+    console.log(`  ! [${f.group}] ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
     if (process.env.GITHUB_ACTIONS === "true") console.log(`::error::SKIPPED (fail-closed): ${f.name}${f.detail ? ` — ${f.detail}` : ""}`);
   }
   exitCode = 1;
+}
+
+/*
+ * Machine-readable result. Job logs are not always retrievable (fork-scoped
+ * tokens get 403 on the logs endpoint), but check-run ANNOTATIONS and the job
+ * summary are, so the totals live there too. Numbers only — never URLs, table
+ * contents or any key material.
+ */
+const oneLine = `Supabase verification: ${passed}/${results.length} passed, ${failed.length} failed, ${notRun.length} skipped`;
+if (process.env.GITHUB_ACTIONS === "true") {
+  console.log(`::notice::${oneLine}`);
+  const rows = byGroup.map((g) => `| ${g.group} | ${g.ok}/${g.total} |${g.bad ? ` ⚠️ ${g.bad} failed` : ""}${g.skip ? ` ⚠️ ${g.skip} skipped` : " ✅"} |`).join("\n");
+  const md = `### ${oneLine}\n\n| Tekshiruv guruhi | O'tdi | Holat |\n|---|---|---|\n${rows}\n\n_0004_auth.sql applied · fail-closed: skipped = red_\n`;
+  try {
+    const { appendFileSync } = await import("node:fs");
+    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+  } catch {
+    /* summary is a convenience; never let it change the verdict */
+  }
 }
 process.exit(exitCode);
