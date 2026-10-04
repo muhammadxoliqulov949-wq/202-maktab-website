@@ -189,7 +189,8 @@ migratsiya qo'llangach qayta ishga tushirish kerak.
 
 ## 11. Qolgan yagona to'siq va cheklovlar
 
-**Majburiy (bitta qadam):** tuzatilgan `0004_auth.sql`ni real loyihaga qo'llash.
+**Majburiy (bitta qadam):** ~~tuzatilgan `0004_auth.sql`ni real loyihaga qo'llash~~
+— **bajarildi** (2026-10-04): `roles=1, admins=0`, workflow ✅ 83/83 (§13).
 
 ```
 Variant A: Supabase dashboard → SQL Editor → supabase/migrations/0004_auth.sql kontenti → Run
@@ -202,9 +203,19 @@ Variant B: repo secret'lariga SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF qo'sh
 paste qilish shu yarim holatdan ham, toza Phase 3 bazasidan ham to'g'ri
 natijaga keltiradi — bu PGlite'da **tekshirilgan** (`npm run verify:migrations`).
 
-Keyin `Verify Supabase` workflow'ini qayta ishga tushiring — qolgan barcha tekshiruv shu.
+**Qolgan operator qadami (CI yashil bo'lishi uchun kerak EMAS, lekin sizning
+kirishingiz uchun kerak):** birinchi admin granti. CI o'z vaqtinchali
+hisoblarini yaratadi va tozalaydi — shuning uchun 83/83 natija sizning
+shaxsiy `admin_users` yozuvingizni isbotlamaydi:
 
-**Tavsiya:** Settings → Secrets'ga `SUPABASE_ANON_KEY` qo'shing. Bo'lmasa server auth
+```bash
+node scripts/admin-user.mjs create --email <e> --role admin   # Auth'da yo'q bo'lsa
+node scripts/admin-user.mjs link   --email <e>                # allaqachon mavjud bo'lsa
+node scripts/admin-user.mjs list                               # tasdiq
+```
+
+**Tavsiya:** ~~Settings → Secrets'ga `SUPABASE_ANON_KEY` qo'shing~~ — **qo'shildi**,
+RLS darvozasi endi to'liq ishlaydi (§13). Bo'lmasa server auth
 chaqiruvlari uchun service-key fallback'iga o'tadi (bir marta warning log qiladi) va
 anon-kalit bilan RLS tekshiruvlari o'tkazib yuboriladi.
 
@@ -306,6 +317,44 @@ Ikki vosita (`pg-query-emscripten`, `@electric-sql/pglite`) `devDependencies`ga
 qo'shildi (~30 MB, transitive bog'liqliksiz) — `--no-save` bilan qo'ymaslik
 kerak: u boshqa ixtiyoriy paketni **o'chirib** qo'yadi va darvoza jimgina
 kuchsizlanadi. Ikkalasi ham faqat test/CI uchun, ilova bundle'iga kirmaydi.
+
+## 13. YAKUNIY REAL TEKSHIRUV — o'tdi
+
+Run [`37190846151`](https://github.com/muhammadxoliqulov949-wq/202-maktab-website/actions/runs/37190846151)
+(`arena/01a101bc-202-maktab-website` @ `9e3d9c3`, `SUPABASE_ANON_KEY` secret'idan keyin):
+
+```
+Supabase verification: 83/83 passed, 0 failed, 0 skipped
+```
+
+| Qadam | Natija |
+|---|---|
+| SQL gate (libpg_query grammatikasi + PGlite'da bajarish) | ✅ |
+| Secret scan (tree + git history) | ✅ |
+| Build | ✅ |
+| Test (`npm test`, 5 suite) | ✅ |
+| **Verify (real Supabase DB + real Supabase Auth)** | ✅ **83/83** |
+
+Bu son qiymatlar GitHub API orqali o'qilgan annotatsiyadan (job logi bu
+sandbox'dan tortilmaydi — scoped token `/actions/jobs/{id}/logs`da 403):
+
+- **0 ta `FAIL`** — fail annotatsiyalari soni: `0`
+- **0 ta `SKIPPED`** — `fail-closed` siyosat: birorta tekshiruv o'tkazib
+  yuborilsa run qizil bo'lardi. Demak, RLS (anonim kalit) bloki **bajarilgan**.
+
+Guruhlar (verify skripti endi shu kesimlarni sanaydi): jadvallar+seed (Phase 3)
+· Phase 4 sxemasi (`admin_roles`/`admin_users`/audit ustunlari) · server +
+public API (Phase 3) · Phase 4 Auth + awtorizatsiya (login 200 / 401 / 403 ×2,
+sessiya, CSRF) · Admin CRUD (Phase 3) · **RLS (PostgREST, anon + user JWT)** ·
+tezlik.
+
+Lokal tomonda shu commit uchun: `npm test` **113/113** · `npm run build` ✅ ·
+`npx tsc --noEmit` toza · `check:sql` 6/6 · `verify:migrations` **18/18** ·
+`check-secrets` toza.
+
+**Phase 4 holati:** autentifikatsiya, awtorizatsiya, RLS, Storage va audit
+cheklovları real Supabase loyihasida tasdiqlangan. PR #3 hali **merge
+qilinmagan** (operator buyrug'i bilan).
 
 ### 12.5 Darvozalar CI'da ham yashil (isbot)
 
