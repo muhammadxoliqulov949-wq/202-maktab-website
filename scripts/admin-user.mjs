@@ -26,6 +26,15 @@
  * Never prints the password or any key.
  */
 import { createInterface } from "node:readline/promises";
+import { loadEnvFiles } from "./lib/env-file.mjs";
+
+// .env.local is where this repo's docs put these values, and Next.js reads it
+// for `next` commands — the CLI has to resolve it too or the documented setup
+// looks broken. Only these two names are imported; real env still wins.
+const envFrom = loadEnvFiles(process.cwd(), {
+  allow: new Set(["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]),
+});
+if (envFrom.loaded.length) console.log(`· ${envFrom.file}: ${envFrom.loaded.join(", ")} o'qildi (qiymatlar chop etilmaydi)`);
 
 const SUPA = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

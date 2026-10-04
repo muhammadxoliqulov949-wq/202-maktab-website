@@ -12,6 +12,13 @@
  * The token is never printed.
  */
 import { readdirSync, readFileSync } from "node:fs";
+import { loadEnvFiles } from "./lib/env-file.mjs";
+
+// Same resolution order as the other operator CLIs: explicit env, then .env.local.
+const envFrom = loadEnvFiles(process.cwd(), {
+  allow: new Set(["SUPABASE_ACCESS_TOKEN", "SUPABASE_PROJECT_REF", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]),
+});
+if (envFrom.loaded.length) console.log(`· ${envFrom.file}: ${envFrom.loaded.join(", ")} o'qildi (qiymatlar chop etilmaydi)`);
 
 const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
 const REF = process.env.SUPABASE_PROJECT_REF;

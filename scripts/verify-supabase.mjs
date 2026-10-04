@@ -32,6 +32,20 @@
  */
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { loadEnvFiles } from "./lib/env-file.mjs";
+
+// The workflow passes these as real env vars; locally the operator puts them in
+// .env.local per supabase/README.md. Resolve both, env first, and never print a value.
+const envFrom = loadEnvFiles(process.cwd(), {
+  allow: new Set([
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_ACCESS_TOKEN",
+    "SUPABASE_PROJECT_REF",
+  ]),
+});
+if (envFrom.loaded.length) console.log(`· ${envFrom.file}: ${envFrom.loaded.join(", ")} o'qildi (qiymatlar chop etilmaydi)`);
 
 const SUPA = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

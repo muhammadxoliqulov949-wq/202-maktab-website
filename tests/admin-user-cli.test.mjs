@@ -19,6 +19,10 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { parseEnvFile, loadEnvFiles } from "../scripts/lib/env-file.mjs";
 
 const SCRIPT = fileURLToPath(new URL("../scripts/admin-user.mjs", import.meta.url));
 const PORT = 3211;
@@ -253,6 +257,88 @@ test("a truncated pipe fails loudly instead of hanging or exiting clean", async 
     assert.equal(r.code, 1, "must not exit 0 having done nothing");
     assert.match(r.err, /parol o'qilmadi|Parollar mos kelmadi/);
     assert.equal(state.requests.filter((q) => q.method === "POST").length, 0, "no partial write on a truncated prompt");
+  });
+});
+
+/* ================== .env.local resolution (the operator trap) ================== */
+
+test("parseEnvFile handles comments, export, quotes and skips empties", () => {
+  const parsed = parseEnvFile(
+    [
+      "# izoh",
+      "",
+      "SUPABASE_URL=https://abc.supabase.co",
+      'export SUPABASE_SERVICE_ROLE_KEY="quoted-value"',
+      "SINGLE='sq'",
+      "EMPTY=",
+      "NOT A KEY",
+      "WITH_EQUALS=a=b",
+      "TRAIL=value # trailing",
+    ].join("\n")
+  );
+  assert.equal(parsed.SUPABASE_URL, "https://abc.supabase.co");
+  assert.equal(parsed.SUPABASE_SERVICE_ROLE_KEY, "quoted-value");
+  assert.equal(parsed.SINGLE, "sq");
+  assert.equal("EMPTY" in parsed, false, "an empty value must not override a real one");
+  assert.equal(parsed.WITH_EQUALS, "a=b", "splits on the FIRST =");
+  assert.equal(parsed.TRAIL, "value", "trailing comment stripped when unquoted");
+});
+
+test("loadEnvFiles: allow-list enforced, real env wins, values never returned", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "m202-env-"));
+  const real = process.env.SUPABASE_URL;
+  try {
+    writeFileSync(
+      path.join(dir, ".env.local"),
+      "SUPABASE_URL=https://from-file.supabase.co\nSUPABASE_SERVICE_ROLE_KEY=from-file-key\nUNRELATED=ignored\n"
+    );
+    process.env.SUPABASE_URL = "https://from-real-env.supabase.co";
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.UNRELATED;
+
+    const res = loadEnvFiles(dir, { allow: new Set(["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]) });
+    assert.equal(process.env.SUPABASE_URL, "https://from-real-env.supabase.co", "explicit env must not be overwritten");
+    assert.equal(process.env.SUPABASE_SERVICE_ROLE_KEY, "from-file-key");
+    assert.equal(process.env.UNRELATED, undefined, "names outside the allow-list are not imported");
+    assert.deepEqual(res.loaded, ["SUPABASE_SERVICE_ROLE_KEY"], "reports only what it actually set");
+    assert.equal(res.file, ".env.local");
+    assert.equal(JSON.stringify(res).includes("from-file-key"), false, "the result must carry names, not values");
+  } finally {
+    if (real === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = real;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the CLI works from a project whose keys live in .env.local (documented setup)", async () => {
+  await withState(async (state) => {
+    const dir = mkdtempSync(path.join(tmpdir(), "m202-cli-"));
+    try {
+      writeFileSync(path.join(dir, ".env.local"), `SUPABASE_URL=${BASE}\nSUPABASE_SERVICE_ROLE_KEY=${FAKE_KEY}\n`);
+      const child = await new Promise((resolve) => {
+        // cwd = a project dir, env has NO SUPABASE_* at all — this is the exact
+        // layout supabase/README.md tells the operator to use.
+        const c = spawn(process.execPath, [SCRIPT, "link", "--email", "director@202-maktab.uz"], {
+          cwd: dir,
+          env: { PATH: process.env.PATH, HOME: process.env.HOME },
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+        let out = "";
+        let err = "";
+        c.stdout.on("data", (d) => (out += d));
+        c.stderr.on("data", (d) => (err += d));
+        c.on("close", (code) => resolve({ code, all: out + err }));
+      });
+      assert.equal(child.code, 0, `must succeed via .env.local, got: ${child.all}`);
+      assert.match(child.all, /\.env\.local: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY o'qildi/);
+      assert.equal(child.all.includes(FAKE_KEY), false, "the note lists names, never values");
+      assert.equal(child.all.includes(BASE), false, "the URL is not echoed either");
+      const insert = state.requests.find((q) => q.method === "POST" && q.path.startsWith("/rest/v1/admin_users"));
+      assert.ok(insert, "the write really went to the host from the file");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
