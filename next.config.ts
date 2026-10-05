@@ -15,6 +15,18 @@ const isDev = process.env.NODE_ENV !== "production";
  */
 const frameAncestors = process.env.CSP_FRAME_ANCESTORS ?? "'self'";
 
+/** OAuth starts with a request to this configured Supabase project. */
+function originFromUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseAuthOrigin = originFromUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+
 const csp = [
   "default-src 'self'",
   // Next.js App Router embeds inline bootstrap/RSC scripts in static HTML.
@@ -25,7 +37,7 @@ const csp = [
   "img-src 'self' data:",
   "media-src 'self'",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self'${supabaseAuthOrigin ? ` ${supabaseAuthOrigin}` : ""}`,
   "frame-src https://www.openstreetmap.org", // prototype map embed
   "object-src 'none'",
   "base-uri 'self'",

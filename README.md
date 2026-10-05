@@ -4,7 +4,7 @@
 
 Phase 3 qisqacha: Supabase PostgreSQL (15 jadval, migratsiyalar), json|supabase provider switch, /admin CMS (yangiliklar, jamoa, galereya, FAQ, inshootlar, statistika, sozlamalar, murojaatlar inbox, audit), admin API (/api/v1/admin/*), audit jurnali, seed skript. Batafsil: **docs/DATABASE.md** va **PHASE-3-HISOBOT.md**.
 
-> ⚠️ /admin — DEVELOPMENT ONLY (Phase 3). Real autentifikatsiya Phase 4'da. Barcha kontent hozircha PROTOTIP.
+> ⚠️ `/admin` hali DEVELOPMENT ONLY: uning API'lari `ADMIN_DEV_TOKEN` bilan himoyalangan. Google orqali kirish foydalanuvchi sessiyasini yaratadi, ammo o‘z-o‘zidan admin ruxsatini bermaydi. Barcha kontent hozircha PROTOTIP.
 
 **202-sonli umumiy o‘rta ta’lim maktabi** — Chilonzor tumani, Toshkent shahri.
 
@@ -81,6 +81,18 @@ cp .env.example .env.local
 npm run db:migrate   # migratsiya fayllari ro'yxati (SQL editor yoki supabase CLI)
 npm run db:seed      # src/data prototip kontentini bazaga ko'chirish (idempotent)
 ```
+
+### Google orqali kirish
+`/login` sahifasidagi **“Google bilan davom etish”** tugmasi Supabase OAuth oqimini boshlaydi va tasdiqlashdan keyin foydalanuvchini sayt originiga qaytaradi. Ishga tushirish uchun `.env.local` ga public Auth qiymatlarini kiriting:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<Supabase anon key>
+```
+
+Supabase Dashboard → **Authentication → Providers → Google** bo‘limida Google provider'ni yoqing va Google OAuth client ID/secret'ni kiriting. So‘ng **Authentication → URL Configuration** ichidagi Redirect URLs ro‘yxatiga sayt manzilini (masalan, `http://localhost:3000`, production domeni va kerak bo‘lsa preview domeni) qo‘shing. Anon/publishable key brauzer uchun mo‘ljallangan; `SUPABASE_SERVICE_ROLE_KEY`ni hech qachon clientga bermang.
+
+> Google sessiyasi foydalanuvchini tasdiqlaydi, ammo o‘z-o‘zidan `/admin` uchun rol/ruxsat bermaydi.
 
 ### Admin panel
 `/admin` — DEVELOPMENT ONLY. Serverda `ADMIN_DEV_TOKEN` sozlang, brauzerda bir marta kiriting.

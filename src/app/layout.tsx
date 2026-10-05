@@ -8,6 +8,7 @@ import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { BackToTop } from "@/components/layout/BackToTop";
 import { AmbientBackdrop } from "@/components/layout/AmbientBackdrop";
 import { Motion3D } from "@/components/motion/Motion3D";
+import { SupabaseSessionBootstrap } from "@/components/auth/SupabaseSessionBootstrap";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://202-maktab.uz"),
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body>
+        <SupabaseSessionBootstrap />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-[color:var(--primary)] focus:px-5 focus:py-3 focus:font-bold focus:text-[color:var(--primary-contrast)]"

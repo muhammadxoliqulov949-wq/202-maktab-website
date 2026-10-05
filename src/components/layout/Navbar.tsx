@@ -210,6 +210,10 @@ export function Navbar() {
                 <LocaleSwitch />
               </div>
               <ThemeToggle />
+              <Link href="/login" className="hidden items-center gap-2 rounded-[14px] px-3 py-2 text-[0.86rem] font-bold text-muted transition-colors hover:text-ink md:inline-flex" aria-label="Hisobga kirish">
+                <Icon name="user" size={17} />
+                Kirish
+              </Link>
               <Link href="/contact#form" className="nav-cta-mini hidden md:inline-flex">
                 Bog‘lanish
                 <Icon name="arrow-up-right" size={16} />
@@ -272,6 +276,10 @@ export function Navbar() {
               <span className="chip !py-2 opacity-60">Русский — tez orada</span>
             </div>
           </div>
+          <Link href="/login" className="btn btn-ghost w-full">
+            <Icon name="user" size={17} />
+            Kirish
+          </Link>
           <Link href="/contact#form" className="btn btn-primary w-full">
             Bog‘lanish
             <Icon name="arrow-up-right" size={17} />
