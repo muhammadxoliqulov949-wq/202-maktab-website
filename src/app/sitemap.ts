@@ -3,7 +3,7 @@ import { NEWS } from "@/data/news";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://202-maktab.uz";
-  const routes = ["", "/about", "/education", "/team", "/news", "/gallery", "/contact"];
+  const routes = ["", "/about", "/education", "/ai-yordamchi", "/team", "/news", "/gallery", "/contact"];
   return [
     ...routes.map((r) => ({
       url: `${base}${r}`,

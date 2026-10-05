@@ -9,6 +9,7 @@ import { BackToTop } from "@/components/layout/BackToTop";
 import { AmbientBackdrop } from "@/components/layout/AmbientBackdrop";
 import { Motion3D } from "@/components/motion/Motion3D";
 import { SupabaseSessionBootstrap } from "@/components/auth/SupabaseSessionBootstrap";
+import { AiCompanion } from "@/components/layout/AiCompanion";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://202-maktab.uz"),
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Navbar />
         <main id="main">{children}</main>
         <Footer />
+        <AiCompanion />
         <BackToTop />
       </body>
     </html>

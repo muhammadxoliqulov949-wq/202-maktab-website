@@ -21,6 +21,7 @@ export const FOOTER_LINKS: NavLink[] = [
 
 export const USEFUL_LINKS: NavLink[] = [
   { href: "/about", label: "Ota-onalar uchun" },
+  { href: "/ai-yordamchi", label: "Ziyo AI yo‘ldoshi" },
   { href: "/education#activities", label: "O‘quvchilar uchun" },
   { href: "/contact#faq", label: "Savol-javoblar" },
   { href: "/contact#form", label: "Hujjatlar" },

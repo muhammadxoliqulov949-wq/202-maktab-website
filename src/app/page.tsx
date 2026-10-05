@@ -1,6 +1,7 @@
 import { Hero } from "@/components/sections/Hero";
 import { Marquee } from "@/components/sections/Marquee";
 import { Intro } from "@/components/sections/Intro";
+import { AiMentorSpotlight } from "@/components/sections/AiMentorSpotlight";
 import { Stats } from "@/components/sections/Stats";
 import { EducationGrid } from "@/components/sections/EducationGrid";
 import { LifeMosaic } from "@/components/sections/LifeMosaic";
@@ -16,6 +17,7 @@ import { StoryRail, type StoryChapter } from "@/components/sections/StoryRail";
 const CHAPTERS: StoryChapter[] = [
   { id: "bob-hero", label: "Bosh sahifa" },
   { id: "bob-tanishuv", label: "Tanishuv" },
+  { id: "bob-ziyo", label: "AI yo‘ldoshi" },
   { id: "bob-raqamlar", label: "Raqamlarda" },
   { id: "bob-talim", label: "Ta’lim" },
   { id: "bob-hayot", label: "Maktab hayoti" },
@@ -46,7 +48,11 @@ export default function HomePage() {
       <div id="bob-tanishuv" data-ambient="/images/intro.jpg">
         <Intro />
       </div>
-      {/* 03 — school in numbers */}
+      {/* 03 — Ziyo, the school AI learning companion */}
+      <div id="bob-ziyo" data-ambient="/images/ai-mentor-owl.webp">
+        <AiMentorSpotlight />
+      </div>
+      {/* 04 — school in numbers */}
       <div id="bob-raqamlar" data-ambient="/images/edu-quality.jpg" className="section-pad-tight">
         <Stats />
       </div>

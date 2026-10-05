@@ -2576,3 +2576,487 @@ select.field {
   .stats-note { padding: 1.15rem 1.2rem 1.3rem; gap: 0.85rem; }
   .stats-note p { font-size: 0.86rem; }
 }
+
+/* ============================================================================
+   ZIYO — 202-maktab AI learning companion
+   The mascot is a calm guide, not a noisy chat widget. Cyan is intentionally
+   confined to this product surface so the school's navy/orange identity stays
+   primary.
+   ============================================================================ */
+
+:root {
+  --ai-cyan: #16c5d9;
+  --ai-cyan-deep: #087d9e;
+  --ai-cyan-soft: rgba(22, 197, 217, 0.14);
+  --ai-navy: #11294c;
+}
+
+.ai-mentor-spotlight {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ai-cyan) 28%, var(--line));
+  border-radius: clamp(26px, 3vw, 38px);
+  background:
+    radial-gradient(circle at 73% 30%, rgba(22, 197, 217, 0.2), transparent 30%),
+    linear-gradient(126deg, color-mix(in srgb, var(--surface-2) 94%, #effcff) 0%, color-mix(in srgb, var(--surface) 84%, #d7f6fa) 100%);
+  box-shadow: 0 24px 56px rgba(13, 43, 74, 0.12), var(--shadow-raised-sm);
+}
+
+.ai-mentor-spotlight::before,
+.ai-mentor-spotlight::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.ai-mentor-spotlight::before {
+  top: -180px;
+  left: -120px;
+  width: 430px;
+  height: 430px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), transparent 68%);
+}
+
+.ai-mentor-spotlight::after {
+  right: 23%;
+  bottom: -170px;
+  width: 360px;
+  height: 360px;
+  border: 1px solid rgba(22, 197, 217, 0.22);
+  box-shadow: 0 0 0 48px rgba(22, 197, 217, 0.045), 0 0 0 96px rgba(22, 197, 217, 0.025);
+}
+
+.ai-mentor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+  min-height: 530px;
+}
+
+.ai-mentor-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(2rem, 5.6vw, 5.25rem);
+}
+
+.ai-mentor-check {
+  color: var(--ai-cyan-deep);
+  background: color-mix(in srgb, var(--ai-cyan) 16%, var(--surface-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ai-cyan) 28%, transparent);
+}
+
+.ai-mentor-visual {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 48% 34%, rgba(255, 255, 255, 0.66), transparent 26%),
+    linear-gradient(145deg, #d9f4f6 0%, #eaf8fa 48%, #bfdfe9 100%);
+}
+
+.ai-mentor-visual::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 34%;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(11, 45, 70, 0.15), transparent);
+}
+
+.ai-mentor-image {
+  z-index: 0;
+  transform: scale(1.08);
+  transition: transform 0.8s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .ai-mentor-spotlight:hover .ai-mentor-image { transform: scale(1.13); }
+}
+
+.ai-mentor-orbit {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  border: 1px solid rgba(13, 159, 183, 0.35);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ai-mentor-orbit-one {
+  top: 12%;
+  right: -20%;
+  width: 75%;
+  aspect-ratio: 1;
+}
+
+.ai-mentor-orbit-two {
+  right: 14%;
+  bottom: -19%;
+  width: 64%;
+  aspect-ratio: 1;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.ai-mentor-status,
+.ai-mentor-label {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  color: #183c5e;
+  background: rgba(247, 254, 255, 0.78);
+  box-shadow: 0 12px 28px rgba(11, 51, 79, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(13px) saturate(1.3);
+  backdrop-filter: blur(13px) saturate(1.3);
+}
+
+.ai-mentor-status {
+  bottom: 24px;
+  left: 24px;
+  min-width: 175px;
+  padding: 10px 14px;
+  border-radius: 17px;
+}
+
+.ai-mentor-status b,
+.ai-mentor-status small { display: block; }
+.ai-mentor-status b { font-size: 0.78rem; font-weight: 850; }
+.ai-mentor-status small { margin-top: 1px; font-size: 0.68rem; font-weight: 700; color: #54718b; }
+
+.ai-mentor-status-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ai-cyan);
+  box-shadow: 0 0 0 4px rgba(22, 197, 217, 0.15), 0 0 13px rgba(22, 197, 217, 0.9);
+}
+
+.ai-mentor-label {
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ai-mentor-label-top { top: 28px; left: 24px; }
+.ai-mentor-label-bottom { right: 20px; bottom: 98px; }
+
+/* ---------- Ziyo landing page ---------- */
+
+.ai-guide-hero {
+  min-height: min(760px, 100svh);
+  background:
+    radial-gradient(circle at 78% 22%, rgba(22, 197, 217, 0.2), transparent 25%),
+    linear-gradient(180deg, color-mix(in srgb, #e1f8fb 72%, var(--bg)) 0%, var(--bg) 100%);
+}
+
+.ai-guide-hero-glow {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.ai-guide-hero-glow-one {
+  top: 8%;
+  left: -11%;
+  width: min(45vw, 620px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.98), transparent 68%);
+}
+
+.ai-guide-hero-glow-two {
+  right: -13%;
+  bottom: -18%;
+  width: min(43vw, 620px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(22, 197, 217, 0.16), transparent 67%);
+}
+
+.ai-guide-hero-mascot { position: relative; margin-inline: auto; width: min(100%, 580px); }
+
+.ai-guide-hero-mascot-frame {
+  position: relative;
+  min-height: clamp(350px, 42vw, 540px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: clamp(28px, 3vw, 42px);
+  background: #d8f1f5;
+  box-shadow: 0 30px 80px rgba(11, 58, 81, 0.16), inset 0 1px 0 #fff;
+}
+
+.ai-guide-hero-bubble {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  color: #173d5d;
+  background: rgba(250, 254, 255, 0.84);
+  box-shadow: 0 12px 28px rgba(10, 50, 77, 0.14);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.ai-guide-hero-bubble-top { top: 8%; left: -5%; }
+.ai-guide-hero-bubble-bottom { right: -4%; bottom: 8%; }
+
+.ai-study-guide {
+  padding: clamp(1.35rem, 4vw, 3.4rem);
+  border: 1px solid color-mix(in srgb, var(--ai-cyan) 20%, var(--line));
+  background:
+    radial-gradient(circle at 96% 0%, rgba(22, 197, 217, 0.13), transparent 26%),
+    var(--surface);
+}
+
+.ai-study-guide-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.ai-study-guide-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.ai-study-guide-tab {
+  display: flex;
+  align-items: center;
+  min-height: 68px;
+  gap: 11px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-2) 74%, transparent);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: left;
+  transition: transform 0.22s var(--ease), border-color 0.22s var(--ease), background-color 0.22s var(--ease), color 0.22s var(--ease), box-shadow 0.22s var(--ease);
+}
+
+.ai-study-guide-tab:hover,
+.ai-study-guide-tab.is-active {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ai-cyan) 65%, var(--line));
+  background: color-mix(in srgb, var(--ai-cyan) 10%, var(--surface-2));
+  box-shadow: 0 10px 22px rgba(10, 108, 130, 0.1);
+}
+
+.ai-study-guide-tab.is-active { transform: translateY(-2px); }
+
+.ai-study-guide-tab-icon,
+.ai-study-guide-plan-icon,
+.ai-guide-feature-icon,
+.ai-companion-link-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--ai-cyan-deep);
+  background: color-mix(in srgb, var(--ai-cyan) 15%, var(--surface-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ai-cyan) 27%, transparent);
+}
+
+.ai-study-guide-tab-icon { width: 38px; height: 38px; border-radius: 12px; }
+
+.ai-study-guide-plan {
+  margin-top: 1rem;
+  padding: clamp(1.3rem, 3vw, 2.35rem);
+  border: 1px solid color-mix(in srgb, var(--ai-cyan) 24%, var(--line));
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface-2) 88%, #e8fbfd);
+}
+
+.ai-study-guide-plan-title { display: flex; align-items: center; gap: 13px; }
+.ai-study-guide-plan-icon { width: 48px; height: 48px; border-radius: 15px; }
+
+.ai-study-guide-steps {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.55rem;
+  counter-reset: ziyo-step;
+}
+
+.ai-study-guide-steps li { display: flex; align-items: flex-start; gap: 11px; }
+.ai-study-guide-steps li > span {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: none;
+  place-items: center;
+  margin-top: 1px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, var(--ai-cyan), var(--ai-cyan-deep));
+  box-shadow: 0 5px 12px rgba(5, 125, 158, 0.25);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+.ai-study-guide-steps p { color: var(--muted); font-size: 0.91rem; font-weight: 650; line-height: 1.55; }
+
+.ai-study-guide-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 1.5rem;
+  padding: 11px 13px;
+  border-radius: 14px;
+  color: color-mix(in srgb, var(--ai-cyan-deep) 86%, var(--ink));
+  background: color-mix(in srgb, var(--ai-cyan) 10%, var(--surface));
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.48;
+}
+.ai-study-guide-tip svg { flex: none; margin-top: 2px; }
+
+.ai-guide-feature { padding: 1.75rem; }
+.ai-guide-feature-icon { width: 48px; height: 48px; border-radius: 15px; }
+
+/* ---------- Floating Ziyo navigator ---------- */
+
+.ai-companion { width: max-content; max-width: calc(100vw - 2rem); }
+
+.ai-companion-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.8rem);
+  width: min(360px, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--ai-cyan) 26%, var(--line));
+  border-radius: 23px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--surface-2) 92%, #eafdff);
+  box-shadow: 0 22px 56px rgba(7, 29, 52, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: aiCompanionIn 0.28s var(--ease-out) both;
+}
+
+@keyframes aiCompanionIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ai-companion-panel-avatar,
+.ai-companion-avatar {
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: #daf3f6;
+  box-shadow: 0 5px 15px rgba(6, 93, 115, 0.15);
+}
+
+.ai-companion-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.ai-companion-link:hover {
+  border-color: color-mix(in srgb, var(--ai-cyan) 26%, transparent);
+  background: color-mix(in srgb, var(--ai-cyan) 8%, var(--surface-2));
+  transform: translateX(2px);
+}
+
+.ai-companion-link-icon { width: 36px; height: 36px; border-radius: 12px; }
+
+.ai-companion-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 60px;
+  padding: 6px 11px 6px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 20px;
+  color: #eefbff;
+  background: linear-gradient(135deg, #173a5e, #0d7896);
+  box-shadow: 0 15px 34px rgba(6, 59, 82, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition: transform 0.24s var(--ease), box-shadow 0.24s var(--ease), background-color 0.24s var(--ease);
+}
+
+.ai-companion-trigger:hover,
+.ai-companion-trigger.is-open {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 38px rgba(6, 59, 82, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ai-companion-trigger:focus-visible,
+.ai-study-guide-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ai-cyan);
+}
+
+[data-theme="dark"] .ai-mentor-spotlight {
+  background: radial-gradient(circle at 74% 25%, rgba(22, 197, 217, 0.18), transparent 32%), linear-gradient(126deg, #182b43, #13283c);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.34), var(--shadow-raised-sm);
+}
+
+[data-theme="dark"] .ai-guide-hero { background: radial-gradient(circle at 78% 22%, rgba(22, 197, 217, 0.17), transparent 27%), linear-gradient(180deg, #142b40 0%, var(--bg) 90%); }
+[data-theme="dark"] .ai-study-guide-plan { background: color-mix(in srgb, var(--surface-2) 88%, #123b47); }
+[data-theme="dark"] .ai-companion-panel { background: color-mix(in srgb, var(--surface-2) 94%, #12333d); }
+
+@media (max-width: 767.98px) {
+  .ai-mentor-grid { grid-template-columns: 1fr; min-height: 0; }
+  .ai-mentor-copy { padding: 1.65rem 1.25rem 1.2rem; }
+  .ai-mentor-visual { min-height: 330px; }
+  .ai-mentor-image { transform: scale(1.11); }
+  .ai-mentor-label-top { top: 16px; left: 16px; }
+  .ai-mentor-label-bottom { right: 13px; bottom: 80px; }
+  .ai-mentor-status { bottom: 15px; left: 15px; padding: 8px 10px; min-width: 156px; }
+  .ai-mentor-status small { font-size: 0.62rem; }
+
+  .ai-guide-hero { min-height: auto; }
+  .ai-guide-hero-mascot { width: min(100%, 460px); }
+  .ai-guide-hero-mascot-frame { min-height: 360px; }
+  .ai-guide-hero-bubble-top { top: 12px; left: 12px; }
+  .ai-guide-hero-bubble-bottom { right: 12px; bottom: 12px; }
+  .ai-guide-hero-bubble { padding: 8px 10px; font-size: 0.68rem; }
+
+  .ai-study-guide { padding: 1.2rem; }
+  .ai-study-guide-head { display: block; }
+  .ai-study-guide-head > p { margin-top: 0.8rem; }
+  .ai-study-guide-tabs { grid-template-columns: 1fr; gap: 0.55rem; margin-top: 1.4rem; }
+  .ai-study-guide-tab { min-height: 57px; padding: 9px 11px; }
+  .ai-study-guide-tab.is-active { transform: none; }
+  .ai-study-guide-plan { padding: 1.15rem; border-radius: 18px; }
+  .ai-study-guide-plan-title { align-items: flex-start; }
+  .ai-study-guide-plan-icon { width: 42px; height: 42px; border-radius: 13px; }
+  .ai-study-guide-steps { gap: 0.7rem; margin-top: 1.25rem; }
+
+  .ai-companion { right: max(0.9rem, env(safe-area-inset-right)); bottom: calc(0.9rem + env(safe-area-inset-bottom)); }
+  .ai-companion-trigger { min-width: 60px; min-height: 60px; padding: 6px; border-radius: 19px; }
+  .ai-companion-panel { width: min(350px, calc(100vw - 1.8rem)); padding: 0.9rem; border-radius: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-companion-panel { animation: none; }
+  .ai-mentor-image,
+  .ai-companion-trigger,
+  .ai-companion-link,
+  .ai-study-guide-tab { transition: none; }
+}
+
+.ai-study-guide-tab,
+.ai-companion-trigger { cursor: pointer; }

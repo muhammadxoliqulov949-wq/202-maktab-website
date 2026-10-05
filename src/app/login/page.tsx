@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
@@ -21,7 +22,10 @@ export default function LoginPage() {
           </p>
           <div className="mt-10 flex items-center gap-3 text-sm font-semibold text-white/80">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/12">202</span>
-            Bilim, tarbiya va kelajak bir maskanda
+            <span className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/20 bg-white/10">
+              <Image src="/images/ai-mentor-owl.webp" alt="Ziyo AI yo‘ldoshi" fill sizes="40px" className="object-cover object-center" />
+            </span>
+            <span>Bilim, tarbiya va kelajak bir maskanda</span>
           </div>
         </div>
 

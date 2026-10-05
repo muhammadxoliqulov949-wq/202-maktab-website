@@ -94,6 +94,9 @@ Supabase Dashboard → **Authentication → Providers → Google** bo‘limida G
 
 > Google sessiyasi foydalanuvchini tasdiqlaydi, ammo o‘z-o‘zidan `/admin` uchun rol/ruxsat bermaydi.
 
+### Ziyo — AI yo‘ldoshi
+`/ai-yordamchi` — Ziyo nomli AI yo‘ldoshning ochiq sahifasi. U bosh sahifadagi spotlight, doimiy pastki-o‘ng navigator va login sahifasidagi mini-belgi orqali ham ko‘rinadi. Hozirgi versiyada u o‘quvchini kerakli sahifalarga yo‘naltiradi hamda darsga tayyorlanish, haftalik reja va qiziqishni tadqiq qilish uchun interaktiv ilk-qadam rejalarini beradi. U ustoz yoki ota-onaning o‘rnini bosmaydi.
+
 ### Admin panel
 `/admin` — DEVELOPMENT ONLY. Serverda `ADMIN_DEV_TOKEN` sozlang, brauzerda bir marta kiriting.
 Endpointlar: `/api/v1/admin/{dashboard,news,team,gallery,faqs,facilities,features,statistics,settings,contact-info,quick-links,contact-submissions,audit-log,media}`.
