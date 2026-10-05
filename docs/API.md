@@ -89,6 +89,46 @@ Content-Type: application/json
   (Phase 2'da saqlanmaydi; Phase 3/4 DB/email handler ulanadi)
 - Frontend holatlari: idle / submitting / success / validation-error / rate-limited / server-error — soxta success YO'Q
 
+## Auth (Phase 4)
+
+| Marshrut | Tavsif |
+|---|---|
+| `POST /api/v1/auth/login` | `{ email, password }` → Supabase Auth tekshiruvi. Muvaffaqiyatda HttpOnly `m202_session` + o'qiladigan `m202_csrf` cookie o'rnatiladi. **Hech qachon token qaytarmaydi.** |
+| `POST /api/v1/auth/logout` | Refresh token'ni GoTrue'da bekor qiladi, ikkala cookie'ni tozalaydi, audit'ga `LOGOUT` yozadi |
+| `GET /api/v1/auth/session` | `{ authenticated, admin: { email, role, permissions } \| null }` — token'siz xulosa |
+
+Login javoblari:
+
+| Holat | Ma'no |
+|---|---|
+| 200 | Faol admin — panelga kirish mumkin |
+| 401 | Noto'g'ri email/parol (yagona umumiy xabar: *"Login failed. Please check your email and password."*) |
+| 403 | Autentifikatsiya muvaffaqiyatli, lekin hisob admin emas yoki o'chirilgan |
+| 422 | Validatsiya xatosi (field details bilan) |
+| 429 | `RATE_LIMIT_LOGIN_MAX` (default 10/60s) — IP **va** email bo'yicha |
+
+## Admin API (Phase 4 himoyasi)
+
+Har bir `/api/v1/admin/*` marshruti mustaqil ravishda tekshiradi:
+
+1. HttpOnly sessiya cookie → `supabase.auth.getUser()` (GoTrue'da tekshiriladi) → aks holda **401**
+2. `x-csrf-token` sarlavhasi `m202_csrf` cookie'siga teng (faqat POST/PUT/PATCH/DELETE) → aks holda **403 `CSRF_FAILED`**
+3. `admin_users` yozuvi mavjud → aks holda **403**
+4. `is_active = true` → aks holda **403**
+5. `admin_roles.permissions` kerakli ruxsatni o'z ichiga oladi → aks holda **403**
+
+| Ruxsat | Marshrutlar |
+|---|---|
+| `dashboard.read` | `GET /api/v1/admin/dashboard` |
+| `content.read` / `content.write` | news, team, gallery, faqs, facilities, features, statistics, quick-links |
+| `inbox.read` / `inbox.write` | contact-submissions |
+| `audit.read` | audit-log |
+| `media.read` / `media.write` | media (+ `POST` multipart upload, `DELETE`) |
+| `settings.read` / `settings.write` | settings, contact-info |
+| `admin.manage` | admin-users (grant / deactivate / delete) |
+
+Batafsil: [`AUTH.md`](AUTH.md).
+
 ## Meta
 
 | Marshrut | Tavsif |
@@ -103,7 +143,8 @@ Content-Type: application/json
 | publicRead | 240/60s | statik kontent o'qishlari |
 | search | 60/60s | news/team qidiruvlari |
 | contact | 5/60s | forma yuborish |
-| auth / admin | 10 / 30 per 60s | Phase 4 uchun rezerv |
+| auth | 10/60s | `POST /api/v1/auth/login` — IP **va** yuborilgan email bo'yicha |
+| admin | 120/60s | barcha `/api/v1/admin/*` |
 
 Phase 2 limiter — har instance uchun xotirada. Load balancer ortida umumiy limitlar
-Phase 3'da Redis limiter orqali ta'minlanadi (interfeys tayyor: `RateLimiter`).
+Redis limiter orqali ta'minlanadi (interfeys tayyor: `RateLimiter`).

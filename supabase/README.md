@@ -1,4 +1,4 @@
-# Supabase — 202-maktab (Phase 3)
+# Supabase — 202-maktab (Phase 3 + Phase 4)
 
 Reproducible database setup. **Migratsiyalarni qo'lda dashboardda bosib-bosib yaratmang** — faqat shu fayllarni qo'llang.
 
@@ -10,12 +10,40 @@ Reproducible database setup. **Migratsiyalarni qo'lda dashboardda bosib-bosib ya
    1. `migrations/0001_initial_schema.sql`
    2. `migrations/0002_rls.sql`
    3. `migrations/0003_storage.sql`
+   4. `migrations/0004_auth.sql`  ← Phase 4 (admin_users, admin_roles, audit identiteti, Storage policy'lari)
 
 ### Variant B — Supabase CLI
 ```bash
 supabase link --project-ref <project-ref>
 supabase db push
 ```
+
+### Variant C — bir marta xato bilan qo'llanib ketgan bo'lsa
+
+SQL Editor faylni **birinchi xatoda to'xtatadi**: `0004_auth.sql`dagi sintaksis
+xatodan keyingi barcha operatorlar ishga tushmaydi — ya'ni bazada `admin_roles`
+bor, lekin `admin_users` yo'q. **Qayta o'tqazish shart emas.** migratsiya
+to'liq idempotent (`if not exists`, `drop … if exists`, `on conflict do nothing`),
+shuning uchun tuzatilgan `0004_auth.sql`ni qayta paste qilsangiz, qolgan
+qismlar qo'shiladi, bajarilganlari esa o'zgarmaydi.
+
+## Migratsiyalarni tekshirish (commit'dan oldin)
+
+```bash
+npm run check:sql          # haqiqiy PostgreSQL grammatikasi (libpg_query) + idempotency lint
+npm run verify:migrations  # migratsiyalarni REAL PostgreSQL'da bajaradi (PGlite)
+npm run test:migrations    # yuqoridagilarning doimiy test qatlami
+```
+
+| Darvoza | Nimani ushlaydi |
+|---|---|
+| `check:sql` | `on restrict` kabi yaroqsiz sintaksis (`syntax error at or near "restrict"`), qayta ishga tushirishda portshob bo'ladigan `create table/index/trigger/policy` |
+| `verify:migrations` | `CREATE` o'tib, lekin **xatti-xato ishlaydigan** hollar: FK harakatlari (RESTRICT/CASCADE/SET NULL), RLS policy'larining haqiqiy ko'rinishi, append-only trigger, Storage yozish policy'si. `admin_roles` yaratilgan, `admin_users` yaratilmagan **qisman holatdan ham tiklanishini** isbotlaydi |
+| `test:migrations` | Bugun topilgan xato klassini (FK action, idempotency, seed `do nothing`, documented no-FK audit column) doimiy qilib qaytarilmasligini kafolatlaydi |
+
+Uchala darvoza ham CI'da (`Verify Supabase` workflow) build'dan **oldin** ishlaydi
+— xato ketgan holda PR qizil bo'ladi. Bu darvozalar `0004_auth.sql`dagi
+`references admin_roles (role) on restrict` xatosidan keyin qo'shildi.
 
 ## Migratsiyalar
 
@@ -24,6 +52,7 @@ supabase db push
 | `0001_initial_schema.sql` | 15 jadval, CHECK/NOT NULL/UNIQUE/FK constraintlar, indekslar, `updated_at` triggerlari |
 | `0002_rls.sql` | Har bir jadvalda RLS yoqiladi, hech qanday anon policy YO'Q (default deny). Server faqat service-role bilan ishlaydi |
 | `0003_storage.sql` | `media` public bucket (metadata DB'da, fayllar Storage'da) |
+| `0004_auth.sql` | `admin_roles` (rol→ruxsatlar), `admin_users` (auth.users ↔ rol), `admin_audit_logs`ga `admin_user_id/admin_email/ip_address` + append-only trigger, `media_assets.uploaded_by`, RLS policy'lari va Storage write policy'lari |
 
 ## Qisqa sxema xaritasi
 
@@ -41,12 +70,34 @@ supabase db push
 | `contact_information` | Rasmiy aloqa ma'lumoti (singleton) | int 1 |
 | `contact_submissions` | **ADMIN-ONLY** murojaatlar inboxi | uuid |
 | `media_assets` | Storage metadata (fayl URL'ları) | uuid |
-| `admin_audit_logs` | Admin mutatsiya jurnali | bigint identity |
+| `admin_audit_logs` | Admin mutatsiya jurnali (append-only, trigger bilan himoyalangan) | bigint identity |
+| `admin_roles` | Rol → ruxsatlar katalogi (`admin` seeded) | text (`admin`) |
+| `admin_users` | **ADMIN-ONLY** — `auth.users.id` ↔ rol/aktivlik | uuid |
 
-## Xavfsizlik holati (halol)
+## Xavfsizlik holati (Phase 4 dan keyin)
 
-- **HLozirda himoyalangan:** barcha jadvallar RLS + default-deny (anon kalit hech narsa o'qiy olmaydi); xizmat kaliti faqat server-side (`src/server/repositories/supabase/client.ts` — `server-only`); `contact_submissions` va `admin_audit_logs` umuman public API'da yo'q.
-- **Phase 4'da bo'ladi:** real autentifikatsiya, rollar, admin uchun aniq policy'lar, MFA maslahati.
+- **Autentifikatsiya:** Supabase Auth (email + parol). Parollar hech qayerda saqlanmaydi — faqat GoTrue'da.
+- **Awtorizatsiya:** `admin_users` (aktivlik) + `admin_roles.permissions` (rol → ruxsatlar). Har bir `/api/v1/admin/*` handler'i mustaqil tekshiradi.
+- **RLS:** barcha jadvallar default-deny. Qo'shimcha tor policy'lar:
+  - `admin_users_select_self` — foydalanuvchi faqat O'Z yozuvini o'qiy oladi;
+  - `admin_roles_select_active_admin` — katalog faqat faol adminlarga ko'rinadi;
+  - `storage.objects`: `media` bucket'ni hamma o'qiy oladi, yozish/o'chirish faqat faol admin JWT'si bilan.
+- **Service-role kalit:** faqat server-side (`src/lib/supabase/service.ts` — `server-only` import build xatosiga olib keladi). Nima uchun har bir holatda ishlatilishi `docs/AUTH.md §2.1`da yozilgan.
+- **Append-only:** `admin_audit_logs`da UPDATE/DELETE trigger bilan taqiqlangan.
+
+## Birinchi adminni yaratish
+
+```bash
+# .env.local'da SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY bo'lsin
+node scripts/admin-user.mjs create --email siz@202-maktab.uz --role admin
+# Agar Auth'da bunday foydalanuvchi ALLAQACHON mavjud bo'lsa (dashboard'da
+# yaratgan yoki taklif yuborilgan bo'lsa) — `create` 422 bilan to'xtaydi:
+node scripts/admin-user.mjs link --email siz@202-maktab.uz   # faqat admin_users yozuvi
+node scripts/admin-user.mjs list
+node scripts/admin-user.mjs deactivate --user-id <uuid>   # darhol 403
+```
+
+Batafsil: `docs/AUTH.md §6`.
 
 ## Keyingi qadam: seed
 

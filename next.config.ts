@@ -15,6 +15,13 @@ const isDev = process.env.NODE_ENV !== "production";
  */
 const frameAncestors = process.env.CSP_FRAME_ANCESTORS ?? "'self'";
 
+/**
+ * If the browser Supabase client is enabled (NEXT_PUBLIC_SUPABASE_URL set at
+ * build time) it must be allowed to reach GoTrue. Nothing else is added —
+ * PostgREST is never called from the browser in this app.
+ */
+const supabaseOrigin = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim().replace(/\/+$/, "");
+
 const csp = [
   "default-src 'self'",
   // Next.js App Router embeds inline bootstrap/RSC scripts in static HTML.
@@ -25,7 +32,7 @@ const csp = [
   "img-src 'self' data:",
   "media-src 'self'",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`, // + Supabase GoTrue when the browser auth client is enabled
   "frame-src https://www.openstreetmap.org", // prototype map embed
   "object-src 'none'",
   "base-uri 'self'",
@@ -43,6 +50,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /**
+   * Required by `forbidden()` (Next 15.5), used by the admin panel layout to
+   * answer a real HTTP 403 to an authenticated non-admin. Without it Next
+   * renders a 500 instead.
+   */
+  experimental: { authInterrupts: true },
   // Dev preview proksisi (sandbox host) uchun ruxsat; production build'ga ta'sir qilmaydi.
   ...(isDev ? { allowedDevOrigins: ["*.e2b.app", "*.e2b.dev", "localhost", "127.0.0.1"] } : {}),
   images: {

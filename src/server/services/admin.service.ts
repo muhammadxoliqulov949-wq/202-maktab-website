@@ -1,13 +1,10 @@
-import { timingSafeEqual } from "node:crypto";
 import { randomUUID } from "node:crypto";
-import type { NextRequest } from "next/server";
-import { getEnv } from "@/server/config/env";
 import { AppError } from "@/server/errors/AppError";
 import { repos } from "@/server/repositories";
 import type { AdminStatusFilter } from "@/server/repositories/interfaces";
 import type { AuditAction, FaqRow, FacilityRow, FeatureRow, GalleryRow, NewsRow, QuickLinkRow, StatRow, SubmissionRow, SubmissionStatus, TeamRow } from "@/server/repositories/types";
 import { cacheInvalidation } from "@/server/services/content.services";
-import { logger } from "@/server/observability/logger";
+import { audit, type AdminIdentity } from "@/server/services/audit";
 import {
   slugify,
   type NewsCreateInput,
@@ -15,63 +12,23 @@ import {
 } from "@/server/validation/adminSchemas";
 
 /**
- * Phase 3 ADMIN SERVICE.
+ * ADMIN SERVICE.
  *
- * Access model (honest, documented):
- *  - Phase 3 has NO production authentication. A development-only gate
- *    protects the admin API: if ADMIN_DEV_TOKEN is set, requests must carry
- *    a matching `x-admin-dev-token` header; a production build without the
- *    token configured disables the admin API entirely (503).
- *  - Every mutation writes an audit entry. admin_identifier records the
- *    auth MECHANISM truthfully ("dev-token") or null — never a fake person.
+ * Phase 4 access model:
+ *  - Authentication is Supabase Auth; authorization is the database-backed
+ *    `admin_users` + `admin_roles` model. The gate itself lives in
+ *    `src/server/auth/actor.ts` (`requireAdminActor`) and is called by every
+ *    admin controller — this service never trusts a caller that has not
+ *    already passed it.
+ *  - Every mutation writes an audit entry carrying the REAL Supabase user id.
  *  - Every mutation invalidates ONLY its own cache namespace.
+ *
+ * The Phase 3 shared-secret development gate was REMOVED entirely — it no
+ * longer exists anywhere in the codebase and grants nothing.
  */
 
-export type AdminIdentity = { adminIdentifier: string | null };
-
-function safeEqual(a: string, b: string): boolean {
-  const ba = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ba.length !== bb.length) return false;
-  return timingSafeEqual(ba, bb);
-}
-
-/** Dev-only gate — throws 401/503. Phase 4 replaces with real auth. */
-export function requireAdmin(req: NextRequest): AdminIdentity {
-  const env = getEnv();
-  if (env.ADMIN_DEV_TOKEN) {
-    const provided = req.headers.get("x-admin-dev-token") ?? "";
-    if (provided && safeEqual(provided, env.ADMIN_DEV_TOKEN)) return { adminIdentifier: "dev-token" };
-    throw AppError.unauthorized("Invalid admin token (development gate — Phase 4 adds real authentication)");
-  }
-  if (env.NODE_ENV === "production") {
-    throw AppError.serviceUnavailable(
-      "Admin API disabled: ADMIN_DEV_TOKEN is not configured. This is a Phase 3 development gate; Phase 4 brings real authentication."
-    );
-  }
-  return { adminIdentifier: null };
-}
-
-/** Audit append — failure is logged, never blocks the mutation response. */
-export async function audit(
-  ident: AdminIdentity,
-  action: AuditAction,
-  entityType: string,
-  entityId: string | null,
-  metadata?: Record<string, unknown> | null
-): Promise<void> {
-  try {
-    await repos().audit.append({
-      adminIdentifier: ident.adminIdentifier,
-      action,
-      entityType,
-      entityId,
-      metadata: metadata ?? null,
-    });
-  } catch (err) {
-    logger.error("audit_append_failed", { entity: entityType, action, error: err instanceof Error ? err.message : String(err) });
-  }
-}
+export { audit };
+export type { AdminIdentity };
 
 async function uniqueId(candidate: string, exists: (id: string) => Promise<boolean>): Promise<string> {
   let id = candidate || randomUUID().slice(0, 8);
@@ -238,7 +195,7 @@ export const adminService = {
   },
   async settingsPatch(patch: Record<string, unknown>, ident: AdminIdentity) {
     const updated = await repos().adminSettings.update(patch as never);
-    await audit(ident, "UPDATE", "site-settings", "1", null);
+    await audit(ident, "SETTINGS_UPDATE", "site-settings", "1", { keys: Object.keys(patch) });
     await cacheInvalidation.invalidateSiteConfig();
     await cacheInvalidation.invalidateContactInfo();
     return updated;
@@ -248,7 +205,7 @@ export const adminService = {
   },
   async contactInfoPatch(patch: Record<string, unknown>, ident: AdminIdentity) {
     const updated = await repos().adminSettings.updateContactInfo(patch as never);
-    await audit(ident, "UPDATE", "contact-info", "1", null);
+    await audit(ident, "SETTINGS_UPDATE", "contact-info", "1", { keys: Object.keys(patch) });
     await cacheInvalidation.invalidateContactInfo();
     return updated;
   },

@@ -7,7 +7,9 @@ import { EDU_FEATURES } from "@/data/education";
 import { FACILITIES } from "@/data/facilities";
 import { QUICK_LINKS } from "@/data/quicklinks";
 import { site } from "@/data/site";
+import { PERMISSIONS } from "@/server/auth/permissions";
 import type {
+  AdminUserRow,
   AuditRow,
   ContactInfoRow,
   FaqRow,
@@ -47,10 +49,48 @@ export type Store = {
   contactInfo: ContactInfoRow;
   submissions: SubmissionRow[];
   audit: AuditRow[];
+  /** Phase 4 — local-dev mirror of `admin_users` (see ADMIN_USERS_SEED). */
+  adminUsers: AdminUserRow[];
 };
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+/**
+ * LOCAL DEV / TEST FIXTURE ONLY.
+ *
+ * `ADMIN_USERS_SEED` is a JSON array of `{ userId, email, role?, isActive? }`
+ * honoured ONLY when the data provider is the in-memory one. It contains no
+ * credentials — passwords are verified by Supabase Auth — so on its own it
+ * grants nothing: a caller still needs a valid Supabase session whose user id
+ * matches. Ignored entirely when DATA_PROVIDER=supabase.
+ */
+function seedAdminUsers(): AdminUserRow[] {
+  if (process.env.DATA_PROVIDER === "supabase") return [];
+  const raw = process.env.ADMIN_USERS_SEED;
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const t = nowIso();
+    return parsed
+      .filter((r): r is Record<string, unknown> => typeof r === "object" && r !== null)
+      .filter((r) => typeof r.userId === "string" && typeof r.email === "string")
+      .map((r) => ({
+        id: `au-${String(r.userId).slice(0, 8)}`,
+        userId: String(r.userId),
+        email: String(r.email),
+        role: typeof r.role === "string" ? r.role : "admin",
+        isActive: r.isActive === undefined ? true : Boolean(r.isActive),
+        permissions: [...PERMISSIONS],
+        createdAt: t,
+        updatedAt: t,
+        lastLoginAt: null,
+      }));
+  } catch {
+    return [];
+  }
 }
 
 function createStore(): Store {
@@ -175,6 +215,7 @@ function createStore(): Store {
     },
     submissions: [],
     audit: [],
+    adminUsers: seedAdminUsers(),
   };
 }
 

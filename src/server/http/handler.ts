@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { AppError } from "@/server/errors/AppError";
 import { cacheControlFor } from "@/server/config/env";
 import { getRateLimiter, clientKey, type RatePolicyName } from "@/server/middleware/rateLimit";
+import { createRequestScope } from "@/server/http/requestContext";
 import { logger } from "@/server/observability/logger";
 import { metrics } from "@/server/observability/metrics";
 import type { ApiResponse, HandlerResult } from "@/server/types/api";
@@ -58,6 +59,11 @@ export function wrap(policy: Policy, fn: RouteFn) {
     const started = performance.now();
     const requestId = req.headers.get("x-request-id") ?? randomUUID();
     const path = req.nextUrl.pathname;
+    // Authenticated surfaces must never be cached by a browser, CDN or proxy.
+    const privateSurface = policy === "admin" || policy === "auth";
+    // Collects Set-Cookie headers produced by auth (session refresh, login,
+    // logout) so controllers need no cookie plumbing. Drained in BOTH paths.
+    const scope = createRequestScope();
 
     try {
       if (policy !== "none") {
@@ -72,7 +78,8 @@ export function wrap(policy: Policy, fn: RouteFn) {
       const params: Record<string, string> = Object.fromEntries(
         Object.entries(rawParams).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? "") : v])
       );
-      const result = await fn({ req, params });
+      const result = await scope.run(async () => fn({ req, params }));
+      const queuedCookies = scope.drain();
       const bodyText = JSON.stringify(result.body);
       const etag = etagOf(bodyText);
 
@@ -83,7 +90,7 @@ export function wrap(policy: Policy, fn: RouteFn) {
         metrics.increment("http_requests_total{status=304}");
         metrics.observeDuration(duration);
         logger.info("req", { requestId, method: req.method, path, status: 304, durationMs: duration });
-        return new NextResponse(null, {
+        const res304 = new NextResponse(null, {
           status: 304,
           headers: {
             ETag: etag,
@@ -91,6 +98,8 @@ export function wrap(policy: Policy, fn: RouteFn) {
             ...(result.ttlSec ? { "Cache-Control": cacheControlFor(result.ttlSec) } : {}),
           },
         });
+        for (const c of queuedCookies) res304.cookies.set(c.name, c.value, c.options);
+        return res304;
       }
 
       metrics.increment(`http_requests_total{status=${result.status}}`);
@@ -98,7 +107,7 @@ export function wrap(policy: Policy, fn: RouteFn) {
       metrics.observeDuration(duration);
       logger.info("req", { requestId, method: req.method, path, status: result.status, durationMs: duration });
 
-      return new NextResponse(bodyText, {
+      const res = new NextResponse(bodyText, {
         status: result.status,
         headers: {
           "Content-Type": "application/json; charset=utf-8",
@@ -106,16 +115,21 @@ export function wrap(policy: Policy, fn: RouteFn) {
           ETag: etag,
           ...(result.ttlSec ? { "Cache-Control": cacheControlFor(result.ttlSec) } : {}),
           ...(result.cache ? { "X-Cache": result.cache } : {}),
+          // A response that writes an auth cookie must never be cached by a
+          // CDN or proxy — otherwise one user's session could be replayed.
+          ...(queuedCookies.length || privateSurface ? { "Cache-Control": "private, no-store, max-age=0" } : {}),
           ...(result.extraHeaders ?? {}),
         },
       });
+      for (const c of queuedCookies) res.cookies.set(c.name, c.value, c.options);
+      return res;
     } catch (err) {
       const mapped = errorResponse(err, requestId);
       const duration = Math.round(performance.now() - started);
       metrics.increment(`http_requests_total{status=${mapped.status}}`);
       metrics.observeDuration(duration);
       logger.info("req", { requestId, method: req.method, path, status: mapped.status, durationMs: duration });
-      return new NextResponse(JSON.stringify(mapped.body), {
+      const errRes = new NextResponse(JSON.stringify(mapped.body), {
         status: mapped.status,
         headers: {
           "Content-Type": "application/json; charset=utf-8",
@@ -123,6 +137,8 @@ export function wrap(policy: Policy, fn: RouteFn) {
           ...(mapped.extra ?? {}),
         },
       });
+      for (const c of scope.drain()) errRes.cookies.set(c.name, c.value, c.options);
+      return errRes;
     }
   };
 }

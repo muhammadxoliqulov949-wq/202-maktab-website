@@ -1,5 +1,6 @@
 import type { Paginated } from "@/server/types/api";
 import type {
+  AdminUserRow,
   AuditRow,
   ContactInfoRow,
   FaqRow,
@@ -140,6 +141,23 @@ export interface AdminSettingsRepository {
   updateContactInfo(patch: Partial<ContactInfoRow>): Promise<ContactInfoRow>;
 }
 
+/**
+ * Phase 4 — administrator directory.
+ * Backed by the `admin_users` table (Supabase) or the in-memory store (dev).
+ * Credentials are NEVER stored here; verification is delegated to Supabase Auth.
+ */
+export interface AdminUserRepository {
+  byUserId(userId: string): Promise<AdminUserRow | null>;
+  list(query: { page: number; limit: number }): Promise<Paginated<AdminUserRow>>;
+  create(row: { userId: string; email: string; role: string; isActive: boolean }): Promise<AdminUserRow>;
+  setActive(id: string, isActive: boolean): Promise<AdminUserRow | null>;
+  setRole(id: string, role: string): Promise<AdminUserRow | null>;
+  touchLogin(userId: string): Promise<void>;
+  remove(id: string): Promise<boolean>;
+  /** Roles available in the catalogue (admin_roles). */
+  roles(): Promise<Array<{ role: string; description: string | null; permissions: string[] }>>;
+}
+
 /** Aggregated provider set returned by the factory (see ./index.ts). */
 export type DataProviders = {
   news: NewsRepository;
@@ -148,6 +166,7 @@ export type DataProviders = {
   content: ContentRepository;
   submissions: ContactSubmissionRepository;
   audit: AuditRepository;
+  adminUsers: AdminUserRepository;
   adminNews: AdminNewsRepository;
   adminTeam: AdminTeamRepository;
   adminGallery: AdminGalleryRepository;

@@ -82,9 +82,27 @@ npm run db:migrate   # migratsiya fayllari ro'yxati (SQL editor yoki supabase CL
 npm run db:seed      # src/data prototip kontentini bazaga ko'chirish (idempotent)
 ```
 
+## Phase 4 — Autentifikatsiya va admin huquqlari (qisqacha)
+
+Batafsil: **[`docs/AUTH.md`](docs/AUTH.md)**.
+
 ### Admin panel
-`/admin` — DEVELOPMENT ONLY. Serverda `ADMIN_DEV_TOKEN` sozlang, brauzerda bir marta kiriting.
-Endpointlar: `/api/v1/admin/{dashboard,news,team,gallery,faqs,facilities,features,statistics,settings,contact-info,quick-links,contact-submissions,audit-log,media}`.
+`/admin` — Supabase Auth (email + parol) bilan himoyalangan. Anonim → `/admin/login`ga redirect;
+autentifikatsiyadan o‘tgan, lekin admin bo‘lmagan foydalanuvchi → HTTP 403.
+
+```bash
+# 1) migratsiyalarni qo‘llang (0001–0004)
+# 2) birinchi adminni yarating (parol STDIN'dan o‘qiladi, hech qayerda chop etilmaydi)
+node scripts/admin-user.mjs create --email siz@202-maktab.uz --role admin
+node scripts/admin-user.mjs list
+```
+
+Endpointlar: `/api/v1/auth/{login,logout,session}` va
+`/api/v1/admin/{dashboard,news,team,gallery,faqs,facilities,features,statistics,settings,contact-info,quick-links,contact-submissions,audit-log,media,admin-users}`.
+
+Har bir admin endpoint mustaqil tekshiradi: sessiya → `admin_users` yozuvi → `is_active` → rol ruxsati → CSRF.
+
+> Phase 3'dagi `ADMIN_DEV_TOKEN` / `x-admin-dev-token` development gate'i **butunlay olib tashlangan**.
 
 ### Provider switch
 `DATA_PROVIDER=json` (default, dev) yoki `supabase` (production). Farqi faqat `.env`da — kod bir xil.
